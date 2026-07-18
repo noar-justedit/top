@@ -4,8 +4,6 @@
 
 Clock, stopwatch and countdown timer for live event production — designed for stage managers, event directors, and broadcast operators.
 
-![TOP! screenshot](https://raw.githubusercontent.com/noar-justedit/top/main/screenshot.png)
-
 ---
 
 ## Features
