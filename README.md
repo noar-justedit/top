@@ -4,6 +4,8 @@
 
 Clock, stopwatch and countdown timer for live event production — designed for stage managers, event directors, and broadcast operators.
 
+![TOP! — Live Event Time Control](https://raw.githubusercontent.com/noar-justedit/top/main/screenshot.png)
+
 ---
 
 ## Features
@@ -21,7 +23,7 @@ Clock, stopwatch and countdown timer for live event production — designed for 
 
 ## Usage
 
-1. Download [`top.html`](https://github.com/noar-justedit/top/blob/main/top.html)
+1. Download [`index.html`](https://github.com/noar-justedit/top/blob/main/index.html)
 2. Open it in any modern browser (Chrome, Firefox, Safari, Brave…)
 3. That's it.
 
