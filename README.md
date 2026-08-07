@@ -2,9 +2,11 @@
 
 **A single HTML file. No install. No server. No internet required.**
 
-Clock, stopwatch and countdown timer for live event production — designed for stage managers, event directors, and broadcast operators.
+Clock, stopwatch, countdown timer and OBS media countdown for live event production — designed for stage managers, event directors, and broadcast operators.
 
 ![TOP! — Live Event Time Control](https://raw.githubusercontent.com/noar-justedit/top/main/screenshot.png)
+
+**Use it now:** [noar-justedit.github.io/top](https://noar-justedit.github.io/top/)
 
 ---
 
@@ -13,11 +15,12 @@ Clock, stopwatch and countdown timer for live event production — designed for 
 - **Reference clock** — Gorgy Timing-style circular dial with 60-segment second ring, date display
 - **Timer** — countdown with overtime detection, live adjustment while running, color-coded progress ring (green → amber → red → blinking)
 - **Stopwatch** — start/pause/reset, digital and Gorgy dial view
-- **Sound cues** — 15 embedded audio files: 5 min, 2 min, 1 min, 30 s, 20 s, then 10 s → 1 s countdown
+- **OBS Media Countdown** — connects to OBS Studio via WebSocket v5 and counts down the media source currently playing (Media Source, VLC playlists, playlist plugins). Auto-detects the on-air source, ignores looping backdrops, optional `PAD_` name filter
+- **Sound cues** — voice announcements at 5 min, 2 min, 1 min, 30 s, 20 s, then 10 → 1 s countdown, on both Timer and OBS Media Countdown. Master volume slider
+- **Flexible layout** — 2×2 grid, drag & drop card reordering, resizable columns and rows, per-card HIDE (collapse) and SOLO view. Everything is remembered between sessions
 - **OBS integration** — per-tool Browser Source URLs with transparent background
 - **Stream Deck / Bitfocus Companion** — full control via keyboard shortcuts, no plugin needed
-- **Fully offline** — all assets embedded as base64, works with no internet connection
-- **Responsive** — portrait and landscape layouts, scales to any screen size
+- **Fully offline** — all assets embedded, Clock / Stopwatch / Timer work with no internet connection
 
 ---
 
@@ -27,7 +30,7 @@ Clock, stopwatch and countdown timer for live event production — designed for 
 2. Open it in any modern browser (Chrome, Firefox, Safari, Brave…)
 3. That's it.
 
-Or host it on any web server and open the URL on any device.
+Or use it directly at [noar-justedit.github.io/top](https://noar-justedit.github.io/top/) — on iPhone/iPad, open it in Safari and tap **Share → Add to Home Screen** for a native-like app.
 
 ---
 
@@ -41,28 +44,40 @@ Or host it on any web server and open the URL on any device.
 | `↑` `↓` or `+` `−` | Increment / decrement active unit |
 | `C` | Stopwatch start / pause |
 | `X` | Stopwatch reset |
-| `F1` | Clock fullscreen toggle |
-| `F2` | Timer fullscreen toggle |
-| `F3` | Stopwatch fullscreen toggle |
-| `Esc` | Exit fullscreen |
+| `F1` | Clock — solo view toggle |
+| `F2` | Timer — solo view toggle |
+| `F3` | Stopwatch — solo view toggle |
+| `F4` | OBS Media — solo view toggle |
+| `Esc` | Exit solo view |
+
+Every action maps to a key — which means full **Stream Deck** or **Bitfocus Companion** control out of the box.
 
 ---
 
 ## OBS Integration
 
-Each tool can run as a standalone transparent Browser Source in OBS Studio.
+### Browser Sources
 
-Click the **⬡ OBS** button on any tool card to copy its URL.
+Each tool can run as a standalone transparent Browser Source in OBS Studio. Click the **⬡ OBS** button on any card to copy its URL.
 
 | Tool | URL |
 |---|---|
-| Clock | `top.html?tool=clock&obs=1` |
-| Timer — digital | `top.html?tool=timer&obs=1` |
-| Timer — Gorgy dial | `top.html?tool=timer&obs=1&dial=1` |
-| Stopwatch — digital | `top.html?tool=chrono&obs=1` |
-| Stopwatch — Gorgy dial | `top.html?tool=chrono&obs=1&dial=1` |
+| Clock | `?tool=clock&obs=1` |
+| Timer — digital | `?tool=timer&obs=1` |
+| Timer — Gorgy dial | `?tool=timer&obs=1&dial=1` |
+| Stopwatch — digital | `?tool=chrono&obs=1` |
+| Stopwatch — Gorgy dial | `?tool=chrono&obs=1&dial=1` |
+| OBS Media Countdown — dial only | `?tool=media&obs=1` |
+| OBS Media Countdown — full card | `?tool=media` |
 
-**In OBS:** right-click the Browser Source → **Interact** to control via mouse. All keyboard shortcuts work from within Interact mode. Controls auto-hide after 4 seconds of inactivity.
+**In OBS:** right-click the Browser Source → **Interact** to control via mouse. Controls auto-hide after 4 seconds of inactivity.
+
+### OBS Media Countdown setup
+
+1. In OBS: **Tools → WebSocket Server Settings** → enable the WebSocket server, note the port (default 4455) and password
+2. In TOP!: click the red wifi icon on the OBS Media Countdown card → enter host / port / password → **Connect**
+3. **Auto mode** picks the media source currently playing in the program scene. Or select a specific source from the dropdown
+4. **PAD_ only** restricts Auto mode to sources named `PAD_*` — automatically bypassed when the scene contains a single media source
 
 ---
 
@@ -70,14 +85,20 @@ Click the **⬡ OBS** button on any tool card to copy its URL.
 
 Quick-adjust buttons add or subtract time from the running timer:
 
-`+1 min` `+5 mins` `+10 mins` `+15 mins` `+20 mins`
-`−1 min` `−5 mins` `−10 mins` `−15 mins` `−20 mins`
+`+1 MIN` `+5 MINS` `+10 MINS` `+15 MINS` `+20 MINS`
+`−1 MIN` `−5 MINS` `−10 MINS` `−15 MINS` `−20 MINS`
 
 ---
 
 ## Overtime
 
-When the timer reaches zero, it continues counting up in red (`+00:00:00`) with a blinking **OVERTIME** badge. Sound cues stop at zero.
+When the timer reaches zero, it continues counting up in red (`+MM:SS`) with a blinking **OVERTIME** badge. Sound cues stop at zero.
+
+---
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
