@@ -4,7 +4,7 @@
 
 Clock, stopwatch, countdown timer and OBS media countdown for live event production — designed for stage managers, event directors, and broadcast operators.
 
-![TOP! — Live Event Time Control](https://raw.githubusercontent.com/noar-justedit/top/main/screenshot-v2.png)
+![TOP! — Live Event Time Control](https://raw.githubusercontent.com/noar-justedit/top/main/screenshot.png)
 
 **Use it now:** [noar-justedit.github.io/top](https://noar-justedit.github.io/top/)
 
@@ -15,8 +15,8 @@ Clock, stopwatch, countdown timer and OBS media countdown for live event product
 - **Reference clock** — Gorgy Timing-style circular dial with 60-segment second ring, date display
 - **Timer** — countdown with overtime detection, live adjustment while running, color-coded progress ring (green → amber → red → blinking)
 - **Stopwatch** — start/pause/reset, digital and Gorgy dial view
-- **OBS Media Countdown** — connects to OBS Studio via WebSocket v5 and counts down the media source currently playing (Media Source, VLC playlists, playlist plugins). Auto-detects the on-air source, ignores looping backdrops, optional `PAD_` name filter
-- **Sound cues** — voice announcements at 5 min, 2 min, 1 min, 30 s, 20 s, then 10 → 1 s countdown, on both Timer and OBS Media Countdown. Master volume slider
+- **OBS Media Countdown** — connects to OBS Studio via WebSocket v5 and counts down the media source currently playing (Media Source, VLC playlists, playlist plugins). Auto-detects the on-air source, ignores looping backdrops, source filter with per-scene checkboxes and Audio/Video type switches. Shows "STAND BY" with the current scene name when nothing is playing
+- **Sound cues** — voice announcements at 5 min, 2 min, 1 min, 30 s, 20 s, then 10 → 1 s countdown, on both Timer and OBS Media Countdown. Master volume slider in the top bar
 - **Flexible layout** — 2×2 grid, drag & drop card reordering, resizable columns and rows, per-card HIDE (collapse) and SOLO view. Everything is remembered between sessions
 - **OBS integration** — per-tool Browser Source URLs with transparent background
 - **Stream Deck / Bitfocus Companion** — full control via keyboard shortcuts, no plugin needed
@@ -54,6 +54,17 @@ Every action maps to a key — which means full **Stream Deck** or **Bitfocus Co
 
 ---
 
+## Layout
+
+- **Drag** a card by its title to swap it with another card
+- **Drag** the divider between columns or rows to resize the grid; **double-click** a divider to reset
+- **HIDE** collapses a card to its title bar
+- **SOLO** shows a single card full-page; press `Esc` or click **SOLO** again to return to the grid
+
+All of this is saved in the browser and restored on next load.
+
+---
+
 ## OBS Integration
 
 ### Browser Sources
@@ -75,9 +86,9 @@ Each tool can run as a standalone transparent Browser Source in OBS Studio. Clic
 ### OBS Media Countdown setup
 
 1. In OBS: **Tools → WebSocket Server Settings** → enable the WebSocket server, note the port (default 4455) and password
-2. In TOP!: click the red wifi icon on the OBS Media Countdown card → enter host / port / password → **Connect**
+2. In TOP!: click the wifi icon (red = disconnected) on the OBS Media Countdown card → enter host / port / password → **Connect**
 3. **Auto mode** picks the media source currently playing in the program scene. Or select a specific source from the dropdown
-4. **PAD_ only** restricts Auto mode to sources named `PAD_*` — automatically bypassed when the scene contains a single media source
+4. Click **☰ SOURCE FILTER** to choose exactly which sources Auto mode should consider, grouped by scene. Unchecked sources are always ignored. Use the **AUDIO** / **VIDEO** switches to narrow by file type, **Select All** / **Deselect All** for bulk changes, and `Shift+Click` a source to select it alone
 
 ---
 

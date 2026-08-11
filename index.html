@@ -500,6 +500,7 @@
     border:1px solid #2aa657;font-size:10px;font-weight:700;letter-spacing:.1em;
     text-transform:uppercase;padding:6px 12px;border-radius:7px;cursor:pointer;transition:.13s;white-space:nowrap;}
   .media-go:hover{box-shadow:0 0 14px #19e36b44;}
+  .media-filter-btn{flex:1;}
   /* Now-playing */
   .now-playing{background:#0d0d11;border:1px solid var(--panel-edge);border-radius:11px;
     padding:10px 14px;margin-bottom:10px;}
@@ -540,6 +541,7 @@
   #mediaCard .flat-view{display:flex !important;flex-direction:column;width:100%;}
   #mediaCard .dial-view{display:flex !important;justify-content:center;margin:4px 0 10px;width:100%;}
   #mediaCard .dial-sm{max-width:min(46vh,300px);width:100%;position:relative;aspect-ratio:1;margin:0 auto;}
+  #mTdial .digits{font-size:var(--dlfs,clamp(32px,8vw,50px)) !important;}
   body.obs-mode.tool-media #mediaCard .dial-view{display:flex !important;align-items:center;justify-content:center;flex:1;width:100%;}
   body.obs-mode.tool-media #mediaCard .flat-view{display:none !important;}
   /* Drag & drop */
@@ -557,6 +559,7 @@
   body:not(.obs-mode)[class*="tool-"] .readout{font-size:clamp(64px,15vw,160px);}
   body:not(.obs-mode)[class*="tool-"] .dial-sm{max-width:min(64vh,64vw);}
   body:not(.obs-mode)[class*="tool-"] .dial-sm .digits{font-size:clamp(44px,10vw,90px) !important;}
+  body:not(.obs-mode)[class*="tool-"] #mTdial .digits{font-size:var(--dlfs,clamp(44px,10vw,90px)) !important;}
   body:not(.obs-mode).tool-media #mediaCard .dial-sm{max-width:min(56vh,56vw);}
 
   /* ===== MASTER VOLUME ===== */
@@ -579,6 +582,40 @@
   #mediaCard.collapsed > .dial-view,
   #mediaCard.collapsed > .media-ws-settings{display:none !important;}
   .card.collapsed .cardhead{margin-bottom:0;}
+
+  /* ===== SOURCE FILTER MODAL ===== */
+  .src-filter-box{width:min(520px,92vw);}
+  .modal-subhead{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    flex-wrap:wrap;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--panel-edge);}
+  .sf-hint{font-size:11px;color:var(--txt-dim);line-height:1.5;max-width:280px;}
+  .sf-type-switches{display:flex;gap:10px;flex-shrink:0;}
+  .sf-empty{font-size:12px;color:var(--txt-dim);text-align:center;padding:20px 0;}
+  .sf-scene{margin-bottom:14px;}
+  .sf-scene:last-child{margin-bottom:0;}
+  .sf-scene-name{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--txt-dim);margin-bottom:6px;padding-left:2px;}
+  .sf-src-row{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:8px;
+    cursor:pointer;transition:.13s;}
+  .sf-src-row:hover{background:#16161c;}
+  .sf-src-chk{width:16px;height:16px;flex-shrink:0;accent-color:var(--green);cursor:pointer;}
+  .sf-src-name{font-size:12px;font-weight:600;color:var(--txt);flex:1;min-width:0;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .sf-src-type{font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--txt-dim);background:#16161c;border:1px solid var(--panel-edge);
+    border-radius:5px;padding:2px 6px;flex-shrink:0;}
+  .sf-src-row.sf-filtered-out{opacity:.28;}
+  .sf-bulk-row{display:flex;gap:8px;margin-bottom:14px;}
+  .sf-bulk-btn{flex:1;font-size:10px;}
+
+  /* STAND BY state — force amber regardless of ring state color logic */
+  #mBarRemaining.sb-standby{color:var(--amber) !important;}
+  #mDlDigits.sb-standby{color:var(--amber) !important;}
+  .sb-scene{
+    display:none;margin-top:6px;font-family:var(--sans);font-weight:600;
+    font-size:clamp(8px,2vmin,11px);letter-spacing:.08em;color:var(--txt-dim);
+    text-align:center;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .sb-scene.show{display:block;}
 </style>
 </head>
 <body>
@@ -586,7 +623,7 @@
 <div class="topbar">
   <div class="brand">
     <span class="dot"></span>
-    <div class="brand-txt"><h1>TOP!</h1><span class="sub">Live Event Time Control · v2.0</span></div>
+    <div class="brand-txt"><h1>TOP!</h1><span class="sub">Live Event Time Control · v2.1.0</span></div>
   </div>
   <div class="brand-right">
     <div class="vol-wrap" id="volWrap" title="Master volume">
@@ -779,6 +816,7 @@
           <span class="sw-track"></span>
           <span class="sw-label">SOUND</span>
         </label>
+        <button class="viewtog media-filter-btn" id="mSrcFilterBtn">☰ SOURCE FILTER</button>
         <button class="viewtog hidebtn" data-target="mediaCard">▾ HIDE</button>
         <button class="solobtn" data-target="mediaCard">◱ SOLO</button>
         <div class="obs-wrap">
@@ -816,11 +854,6 @@
           <option value="__auto__">Auto (playing source)</option>
         </select>
         <button class="viewtog icon-btn" id="mRefreshBtn" title="Reload source list"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg></button>
-        <label class="sound-sw" title="Auto mode: only consider sources whose name starts with PAD_">
-          <input type="checkbox" id="mPadChk">
-          <span class="sw-track"></span>
-          <span class="sw-label">PAD_ only</span>
-        </label>
         <button class="media-go" id="mConnectBtn">Connect</button>
       </div>
     </div>
@@ -834,8 +867,9 @@
           <circle class="ring" id="mRing" cx="200" cy="200" r="166" transform="rotate(-90 200 200)"/>
         </svg>
         <div class="center">
-          <div class="cap cap-dial">Remaining</div>
+          <div class="cap cap-dial" id="mCapDial">Remaining</div>
           <div class="digits dig-tmr" id="mDlDigits">--:--:--</div>
+          <div class="sb-scene show" id="mSbScene"></div>
         </div>
       </div>
     </div>
@@ -900,6 +934,29 @@
       <div class="sc-row"><kbd>F4</kbd><span>OBS Media — solo toggle</span></div>
       <div class="sc-row"><kbd>Esc</kbd><span>Exit solo view</span></div>
       <div class="sc-row"><kbd>Esc</kbd><span>Exit full screen</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="srcFilterModal" class="modal-overlay">
+  <div class="modal-box src-filter-box">
+    <div class="modal-head">
+      <span class="modal-title">☰ SOURCE FILTER</span>
+      <button id="closeSrcFilter">✕</button>
+    </div>
+    <div class="modal-subhead">
+      <span class="sf-hint">Only checked sources are considered by the Auto mode countdown.<br>Shift+Click a source to select it alone.</span>
+      <div class="sf-type-switches">
+        <label class="sound-sw" title="Show / consider video sources"><input type="checkbox" id="sfVideoChk" checked><span class="sw-track"></span><span class="sw-label">VIDEO</span></label>
+        <label class="sound-sw" title="Show / consider audio sources"><input type="checkbox" id="sfAudioChk" checked><span class="sw-track"></span><span class="sw-label">AUDIO</span></label>
+      </div>
+    </div>
+    <div class="sf-bulk-row">
+      <button class="viewtog sf-bulk-btn" id="sfSelectAllBtn">Select All</button>
+      <button class="viewtog sf-bulk-btn" id="sfDeselectAllBtn">Deselect All</button>
+    </div>
+    <div class="modal-body" id="sfSceneList">
+      <div class="sf-empty">Connect to OBS to list sources.</div>
     </div>
   </div>
 </div>
@@ -1572,6 +1629,8 @@ if(document.body.classList.contains('obs-mode')){
   const mTdial    = mEl('mTdial');
   const mRing     = mEl('mRing');
   const mDlDigs   = mEl('mDlDigits');
+  const mCapDialEl= mEl('mCapDial');
+  const mSbScene  = mEl('mSbScene');
   const mCard     = mEl('mediaCard');
 
   /* Ring geometry */
@@ -1587,15 +1646,160 @@ if(document.body.classList.contains('obs-mode')){
   /* Settings button (gear) */
   mEl('mSettingsBtn').addEventListener('click', () => mSettings.classList.toggle('open'));
 
+  /* ===== SOURCE FILTER ===== */
+  const SF_KEY = 'topMediaSrcFilter';           // {sourceName: true/false}
+  const SF_TYPE_KEY = 'topMediaSrcTypeFilter';  // {video:true, audio:true}
+  let sfChecked = {};
+  let sfTypeFilter = {video:true, audio:true};
+  try{ sfChecked = JSON.parse(localStorage.getItem(SF_KEY) || '{}'); }catch(e){}
+  try{ sfTypeFilter = JSON.parse(localStorage.getItem(SF_TYPE_KEY) || 'null') || sfTypeFilter; }catch(e){}
+
+  const sfModal    = mEl('srcFilterModal');
+  const sfSceneList= mEl('sfSceneList');
+  const sfVideoChk = mEl('sfVideoChk');
+  const sfAudioChk = mEl('sfAudioChk');
+  sfVideoChk.checked = sfTypeFilter.video;
+  sfAudioChk.checked = sfTypeFilter.audio;
+
+  const VIDEO_EXT = ['.mp4','.mov','.mkv','.avi','.webm','.m4v','.wmv','.flv'];
+  const AUDIO_EXT = ['.mp3','.wav','.m4a','.aac','.flac','.ogg','.wma','.aiff'];
+  const mSrcFileCache = new Map();
+  const mSrcDimCache  = new Map();
+
+  function sfDetectType(name){
+    const file = (mSrcFileCache.get(name) || '').toLowerCase();
+    if(file){
+      if(VIDEO_EXT.some(e=>file.endsWith(e))) return 'video';
+      if(AUDIO_EXT.some(e=>file.endsWith(e))) return 'audio';
+    }
+    const dim = mSrcDimCache.get(name);
+    if(dim && dim.w===0 && dim.h===0) return 'audio';
+    return 'video';
+  }
+
+  function sfIsAllowed(name){
+    if(sfChecked[name] === false) return false;
+    const type = sfDetectType(name);
+    if(type==='video' && !sfTypeFilter.video) return false;
+    if(type==='audio' && !sfTypeFilter.audio) return false;
+    return true;
+  }
+
+  function sfSaveChecked(){ localStorage.setItem(SF_KEY, JSON.stringify(sfChecked)); }
+  function sfSaveType(){ localStorage.setItem(SF_TYPE_KEY, JSON.stringify(sfTypeFilter)); }
+
+  sfVideoChk.addEventListener('change', ()=>{ sfTypeFilter.video = sfVideoChk.checked; sfSaveType(); sfRenderList(); });
+  sfAudioChk.addEventListener('change', ()=>{ sfTypeFilter.audio = sfAudioChk.checked; sfSaveType(); sfRenderList(); });
+
+  mEl('mSrcFilterBtn').addEventListener('click', async ()=>{ sfModal.classList.add('open'); await sfLoadSceneTree(); });
+
+  function sfVisibleNames(){
+    const out=[];
+    for(const {sources} of sfSceneTree) for(const n of sources){
+      const type=sfDetectType(n);
+      const hidden=(type==='video'&&!sfTypeFilter.video)||(type==='audio'&&!sfTypeFilter.audio);
+      if(!hidden) out.push(n);
+    }
+    return out;
+  }
+  mEl('sfSelectAllBtn').addEventListener('click', ()=>{
+    sfVisibleNames().forEach(n=> sfChecked[n]=true );
+    sfSaveChecked(); sfRenderList();
+  });
+  mEl('sfDeselectAllBtn').addEventListener('click', ()=>{
+    sfVisibleNames().forEach(n=> sfChecked[n]=false );
+    sfSaveChecked(); sfRenderList();
+  });
+  mEl('closeSrcFilter').addEventListener('click', ()=> sfModal.classList.remove('open'));
+  sfModal.addEventListener('click', e=>{ if(e.target===sfModal) sfModal.classList.remove('open'); });
+
+  let sfSceneTree = [];
+
+  async function sfCollectDirect(sceneName, depth, seen){
+    if(depth>4 || seen.has(sceneName)) return [];
+    seen.add(sceneName);
+    const r = await mRequest('GetSceneItemList',{sceneName});
+    if(!r||!r.responseData) return [];
+    const out=[];
+    for(const it of r.responseData.sceneItems){
+      if(it.isGroup){
+        const g = await mRequest('GetGroupSceneItemList',{sceneName:it.sourceName});
+        if(g&&g.responseData) for(const gi of g.responseData.sceneItems){
+          if(gi.sourceType==='OBS_SOURCE_TYPE_SCENE') out.push(...await sfCollectDirect(gi.sourceName,depth+1,seen));
+          else out.push(gi.sourceName);
+        }
+      } else if(it.sourceType==='OBS_SOURCE_TYPE_SCENE'){
+        out.push(...await sfCollectDirect(it.sourceName,depth+1,seen));
+      } else out.push(it.sourceName);
+    }
+    return out;
+  }
+
+  async function sfLoadSceneTree(){
+    if(!mIdent){ sfSceneList.innerHTML = '<div class="sf-empty">Connect to OBS to list sources.</div>'; return; }
+    sfSceneList.innerHTML = '<div class="sf-empty">Loading…</div>';
+    if(!mMediaList.length) await mLoadSources();
+    const scenesR = await mRequest('GetSceneList');
+    if(!scenesR||!scenesR.responseData){ sfSceneList.innerHTML='<div class="sf-empty">Could not load scenes.</div>'; return; }
+    const scenes = scenesR.responseData.scenes.map(s=>s.sceneName).reverse();
+    const seenNames = new Set();
+    const mediaSet = new Set(mMediaList); // only true media sources: excludes images, color/text
+                                            // generators, browser/live captures — anything without a duration
+    sfSceneTree = [];
+    for(const scene of scenes){
+      const names = [...new Set(await sfCollectDirect(scene,0,new Set()))]
+        .filter(n=>!seenNames.has(n) && mediaSet.has(n));
+      names.forEach(n=>seenNames.add(n));
+      if(names.length) sfSceneTree.push({scene, sources:names});
+    }
+    for(const {sources} of sfSceneTree){
+      for(const n of sources){
+        if(!mSrcFileCache.has(n)){
+          const st = await mRequest('GetInputSettings',{inputName:n});
+          const set = st&&st.responseData?st.responseData.inputSettings:null;
+          mSrcFileCache.set(n, (set&&(set.local_file||set.file))||'');
+        }
+        if(sfChecked[n]===undefined) sfChecked[n]=true;
+      }
+    }
+    sfSaveChecked();
+    sfRenderList();
+  }
+
+  function sfRenderList(){
+    if(!sfSceneTree.length){ sfSceneList.innerHTML='<div class="sf-empty">No media sources found.</div>'; return; }
+    sfSceneList.innerHTML = sfSceneTree.map(({scene,sources})=>{
+      const rows = sources.map(n=>{
+        const type = sfDetectType(n);
+        const typeHidden = (type==='video' && !sfTypeFilter.video) || (type==='audio' && !sfTypeFilter.audio);
+        const checked = sfChecked[n] !== false;
+        return `<label class="sf-src-row${typeHidden?' sf-filtered-out':''}">
+          <input type="checkbox" class="sf-src-chk" data-src="${n.replace(/"/g,'&quot;')}" ${checked?'checked':''}>
+          <span class="sf-src-name">${n}</span>
+          <span class="sf-src-type">${type}</span>
+        </label>`;
+      }).join('');
+      return `<div class="sf-scene"><div class="sf-scene-name">${scene}</div>${rows}</div>`;
+    }).join('');
+    sfSceneList.querySelectorAll('.sf-src-chk').forEach(chk=>{
+      chk.addEventListener('click', e=>{
+        if(e.shiftKey){
+          e.preventDefault();
+          const all = sfSceneTree.flatMap(s=>s.sources);
+          all.forEach(n=> sfChecked[n] = false );
+          sfChecked[chk.dataset.src] = true;
+          sfSaveChecked(); sfRenderList();
+        }
+      });
+      chk.addEventListener('change', ()=>{ sfChecked[chk.dataset.src] = chk.checked; sfSaveChecked(); });
+    });
+  }
+
   /* Sound switch persistence */
   const mSoundChk = mEl('mSoundChk');
   mSoundChk.checked = localStorage.getItem('topMediaSound') !== '0';
   mSoundChk.addEventListener('change', () => localStorage.setItem('topMediaSound', mSoundChk.checked ? '1' : '0'));
 
-  /* PAD_ filter persistence */
-  const mPadChk = mEl('mPadChk');
-  mPadChk.checked = localStorage.getItem('topMediaPad') === '1';
-  mPadChk.addEventListener('change', () => localStorage.setItem('topMediaPad', mPadChk.checked ? '1' : '0'));
 
   /* State */
   let mWs=null, mIdent=false, mReqId=0;
@@ -1694,7 +1898,10 @@ if(document.body.classList.contains('obs-mode')){
   }
 
   /* Scene */
-  function mSetScene(n){mSceneNm.textContent=n||'—';mCurScene=n||null;mRefreshVis();}
+  function mSetScene(n){
+    mSceneNm.textContent=n||'—';mCurScene=n||null;mRefreshVis();
+    mSbScene.textContent = n ? 'Scene: '+n : '';
+  }
   async function mLoadScene(){
     const r=await mRequest('GetCurrentProgramScene');
     if(r&&r.responseData) mSetScene(r.responseData.sceneName||r.responseData.currentProgramSceneName);
@@ -1752,7 +1959,9 @@ if(document.body.classList.contains('obs-mode')){
     if(mActive!==null){mActive=null;mSpoken.clear();}
     mMediaNm.textContent='No media playing'; mMediaNm.className='np-val np-none';
     mElapsed.textContent='--:--:--';
-    mRemaing.textContent='--:--:--'; mDlDigs.textContent='--:--:--';
+    mRemaing.textContent='STAND BY'; mDlDigs.textContent='STAND BY';
+    mRemaing.classList.add('sb-standby'); mDlDigs.classList.add('sb-standby');
+    mCapDialEl.textContent='';
     mPbarFill.style.width='0%';
     mRing.style.strokeDashoffset=M_RING_C;
     mSetState('amber',false); mLastRemSec=Infinity;
@@ -1762,7 +1971,7 @@ if(document.body.classList.contains('obs-mode')){
   function mApply(name,d){
     const dur=d.mediaDuration, cur=d.mediaCursor;
     if(!dur||dur<=0){mIdle();mMediaNm.textContent=name+' (no duration)';return;}
-    if(name!==mActive){mActive=name;mSpoken.clear();}
+    if(name!==mActive){mActive=name;mSpoken.clear();mCapDialEl.textContent='Remaining';mRemaing.classList.remove('sb-standby');mDlDigs.classList.remove('sb-standby');}
     const remMs=Math.max(0,dur-cur), remSec=Math.ceil(remMs/1000);
     if(remSec>mLastRemSec+2) mSpoken.clear();
     mLastRemSec=remSec;
@@ -1798,14 +2007,10 @@ if(document.body.classList.contains('obs-mode')){
     if(!mIdent) return;
     let name=mSrcSel.value;
     if(name==='__auto__'){
-      /* Visible sources first; PAD_ filter only applies when the scene
-         offers several candidates — a lone source (media or playlist) is
-         always considered, whatever its name. */
+      /* Visible sources first, then the explicit Source Filter selection
+         (unchecked sources are always ignored, even if unique in scene). */
       let pool=mVisSet?mMediaList.filter(n=>mVisSet.has(n)):mMediaList;
-      if(mPadChk.checked && pool.length>1){
-        const padOnly=pool.filter(n=>n.startsWith('PAD_'));
-        if(padOnly.length) pool=padOnly;
-      }
+      pool=pool.filter(sfIsAllowed);
       const playing=[];
       for(const n of pool){
         const st=await mRequest('GetMediaInputStatus',{inputName:n});
@@ -1824,6 +2029,21 @@ if(document.body.classList.contains('obs-mode')){
     else mIdle();
   }
   setInterval(mPoll,250);
+
+  /* Dial font-size follows the actual card width (grid resize, solo, HIDE, OBS…),
+     not just the viewport — keeps STAND BY the same size as running digits, always fit to ring. */
+  function mScaleDial(){
+    const wrap = mTdial.querySelector('.dial-wrap');
+    if(!wrap) return;
+    const w = wrap.getBoundingClientRect().width;
+    if(!w) return;
+    const fs = Math.max(15, Math.min(90, w*0.155));
+    mTdial.style.setProperty('--dlfs', fs.toFixed(1)+'px');
+  }
+  const mDialWrap = mTdial.querySelector('.dial-wrap');
+  if(window.ResizeObserver && mDialWrap) new ResizeObserver(mScaleDial).observe(mDialWrap);
+  window.addEventListener('resize', mScaleDial);
+  setTimeout(mScaleDial, 50);
 
   mIdle();
 })();
