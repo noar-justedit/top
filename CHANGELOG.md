@@ -1,5 +1,24 @@
 # Changelog
 
+## v2.1.1 — 2026-08
+
+**Maintenance release: connection settings that stick, and honest error messages.**
+
+### Fixed — OBS WebSocket
+- **Connection settings are now remembered.** Host and port are always saved; the password is saved only when the new **Remember** switch is on. TOP! **reconnects automatically** on load, so an OBS Browser Source (`?tool=media`) comes back online on its own after a restart — no more retyping the password before every show
+- No more endless retry loop when authentication cannot succeed: a missing password now reports **Password required** and a rejected one reports **Wrong password** (OBS close code 4009), both stopping cleanly instead of retrying every 3 s forever. A genuine network drop still retries as before
+- **Clear message when HTTPS blocks a remote OBS.** A page served over HTTPS may only open a `ws://` connection to a local address; any other host is blocked by the browser. TOP! now detects this before connecting and explains it, instead of reporting a misleading "Invalid address"
+- New error line under the connection settings for all of the above
+- OBS scene and source names are HTML-escaped before being displayed in the Source Filter
+- Media polling and scene-visibility refresh are now self-scheduling loops instead of fixed intervals, so passes can no longer overlap and stack up requests against OBS on large scene collections
+
+### Fixed — UI
+- `Esc` now closes the **Shortcuts** and **Source Filter** modals (the handler was unreachable). Priority is modal → page fullscreen → solo view
+- Card header buttons wrap to a second row instead of being clipped — the OBS Media Countdown settings gear was cut off at every window width
+- The Timer **SOUND** switch is persisted between sessions, and now defaults to **ON** to match the OBS Media Countdown card
+
+---
+
 ## v2.1.0 — 2026-08
 
 **Major release: OBS integration goes deep.**

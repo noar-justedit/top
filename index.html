@@ -251,8 +251,10 @@
     color:var(--red);text-shadow:0 0 8px var(--red);}
   .overtime-badge.show{display:inline;animation:tblink .7s steps(1) infinite;}
   .stepper.active input{border-color:var(--amber) !important;box-shadow:0 0 0 2px var(--amber-dim);}
-  .cardhead{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;}
-  .cardhead .label{margin-bottom:0;}
+  /* flex-wrap: when the header is too narrow the buttons go to a second row
+     instead of being clipped (the settings gear used to be cut off). */
+  .cardhead{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;flex-wrap:wrap;}
+  .cardhead .label{margin-bottom:0;min-width:0;flex:1 1 auto;}
   /* Dial and Fullscreen buttons: same size, same font */
   .viewtog.icon-btn{padding:5px 8px;}
   .viewtog.icon-btn svg{width:13px;height:13px;display:block;}
@@ -263,7 +265,8 @@
     cursor:pointer;transition:.13s;white-space:nowrap;line-height:1;
   }
   .viewtog:hover,.solobtn:hover{color:var(--txt);border-color:#3a3a44;}
-  .cardbtns{display:flex;gap:6px;align-items:center;}
+  .cardbtns{display:flex;gap:6px;row-gap:5px;align-items:center;flex-wrap:wrap;justify-content:flex-end;
+    flex:0 1 auto;min-width:0;}
   /* Sound switch */
   .sound-sw{display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;}
   .sound-sw input{display:none;}
@@ -501,6 +504,11 @@
     text-transform:uppercase;padding:6px 12px;border-radius:7px;cursor:pointer;transition:.13s;white-space:nowrap;}
   .media-go:hover{box-shadow:0 0 14px #19e36b44;}
   .media-filter-btn{flex:1;}
+  /* Remember-credentials switch + connection error line */
+  .ws-remember{flex-shrink:0;}
+  .media-ws-err{display:none;font-size:10px;line-height:1.45;color:var(--amber);
+    background:#2a1d05;border:1px solid #5a3d08;border-radius:8px;padding:7px 10px;margin-top:8px;}
+  .media-ws-err.show{display:block;}
   /* Now-playing */
   .now-playing{background:#0d0d11;border:1px solid var(--panel-edge);border-radius:11px;
     padding:10px 14px;margin-bottom:10px;}
@@ -623,7 +631,7 @@
 <div class="topbar">
   <div class="brand">
     <span class="dot"></span>
-    <div class="brand-txt"><h1>TOP!</h1><span class="sub">Live Event Time Control · v2.1.0</span></div>
+    <div class="brand-txt"><h1>TOP!</h1><span class="sub">Live Event Time Control · v2.1.1</span></div>
   </div>
   <div class="brand-right">
     <div class="vol-wrap" id="volWrap" title="Master volume">
@@ -848,6 +856,11 @@
         <input class="media-inp sm" type="text" id="mPort" value="4455">
         <span class="media-ws-lbl">Password</span>
         <input class="media-inp" type="password" id="mPwd" placeholder="(optional)">
+        <label class="sound-sw ws-remember" title="Remember these settings in this browser. The password is stored in clear text in localStorage — leave off on a shared machine.">
+          <input type="checkbox" id="mRemember">
+          <span class="sw-track"></span>
+          <span class="sw-label">Remember</span>
+        </label>
       </div>
       <div class="media-ws-row">
         <select class="media-src-sel" id="mSrcSel">
@@ -856,6 +869,7 @@
         <button class="viewtog icon-btn" id="mRefreshBtn" title="Reload source list"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg></button>
         <button class="media-go" id="mConnectBtn">Connect</button>
       </div>
+      <div class="media-ws-err" id="mWsErr"></div>
     </div>
 
     <!-- Dial (Gorgy) view — always visible -->
@@ -1369,10 +1383,13 @@ document.querySelectorAll('.solobtn').forEach(btn=>{
   btn.addEventListener('click', ()=> setSolo(btn.dataset.target));
 });
 
-/* ---- Sound switch ---- */
+/* ---- Sound switch (persisted — same default as the OBS Media card: ON) ---- */
 const soundSwitch = document.getElementById('soundSwitch');
+soundSwitch.checked = localStorage.getItem('topTimerSound') !== '0';
+soundEnabled = soundSwitch.checked;
 soundSwitch.addEventListener('change', ()=>{
   soundEnabled = soundSwitch.checked;
+  try{ localStorage.setItem('topTimerSound', soundEnabled ? '1' : '0'); }catch(e){}
   unlockAudio();
   if(!tmRunning) initSoundFlags(tmRemain);
 });
@@ -1437,6 +1454,18 @@ document.addEventListener('keydown',e=>{
   const isTimer = timerStepInputs.includes(document.activeElement);
   const isInput = tag==='input' || tag==='textarea';
 
+  /* Escape is handled first — before the "not in an input" guard — so it also
+     works while a checkbox or a text field inside a modal has focus.
+     Priority: open modal → page fullscreen → solo view → blur the focused field. */
+  if(e.key==='Escape'){
+    if(shortcutsModal.classList.contains('open')){ shortcutsModal.classList.remove('open'); return; }
+    const sfm = document.getElementById('srcFilterModal');
+    if(sfm && sfm.classList.contains('open')){ sfm.classList.remove('open'); return; }
+    if(document.fullscreenElement){ document.exitFullscreen(); return; }
+    if(isInput){ document.activeElement.blur(); return; }
+    setSolo(null); return;
+  }
+
   // Space / R: only when not in input
   if(!isInput){
     if(e.code==='Space'){ e.preventDefault(); timerStartBtn.click(); return; }
@@ -1449,11 +1478,6 @@ document.addEventListener('keydown',e=>{
     if(e.key==='F2'){ e.preventDefault(); setSolo('timerCard'); return; }
     if(e.key==='F3'){ e.preventDefault(); setSolo('chronoCard'); return; }
     if(e.key==='F4'){ e.preventDefault(); setSolo('mediaCard'); return; }
-    if(e.key==='Escape'){
-      if(document.fullscreenElement){ document.exitFullscreen(); return; }
-      setSolo(null); return;
-    }
-    if(e.key==='Escape'){ shortcutsModal.classList.remove('open'); return; }
   }
 
   // Timer keyboard navigation (outside input, or in a timer input)
@@ -1638,6 +1662,40 @@ if(document.body.classList.contains('obs-mode')){
   mRing.style.strokeDasharray  = M_RING_C;
   mRing.style.strokeDashoffset = M_RING_C;
 
+  /* ===== CONNECTION SETTINGS — persistence =====
+     Host and port are always remembered. The password is only written to
+     localStorage when "Remember" is on, because it is stored in clear text. */
+  const WS_KEY   = 'topObsWs';
+  const mRemember = mEl('mRemember');
+  const mWsErrEl  = mEl('mWsErr');
+  let mHasSavedCfg = false;
+
+  function mShowErr(txt){
+    if(!mWsErrEl) return;
+    mWsErrEl.textContent = txt || '';
+    mWsErrEl.classList.toggle('show', !!txt);
+    if(txt) mSettings.classList.add('open');
+  }
+
+  (function mLoadWsCfg(){
+    let cfg = null;
+    try{ cfg = JSON.parse(localStorage.getItem(WS_KEY) || 'null'); }catch(e){}
+    if(!cfg) return;
+    mHasSavedCfg = true;
+    if(cfg.host) mHostEl.value = cfg.host;
+    if(cfg.port) mPortEl.value = cfg.port;
+    if(typeof cfg.pwd === 'string') mPwdEl.value = cfg.pwd;
+    mRemember.checked = !!cfg.remember;
+  })();
+
+  function mSaveWsCfg(){
+    const cfg = { host: mHostEl.value, port: mPortEl.value, remember: mRemember.checked };
+    if(mRemember.checked) cfg.pwd = mPwdEl.value;
+    try{ localStorage.setItem(WS_KEY, JSON.stringify(cfg)); mHasSavedCfg = true; }catch(e){}
+  }
+  mRemember.addEventListener('change', mSaveWsCfg);
+  [mHostEl, mPortEl, mPwdEl].forEach(el => el.addEventListener('change', mSaveWsCfg));
+
   /* Settings panel toggle */
   mConnDot.addEventListener('click', () => mSettings.classList.toggle('open'));
   mEl('mConnectBtn').addEventListener('click', mConnect);
@@ -1766,6 +1824,11 @@ if(document.body.classList.contains('obs-mode')){
     sfRenderList();
   }
 
+  /* Scene and source names come from OBS and are injected as HTML below —
+     escape them so a source named e.g. <img onerror=…> can't run script. */
+  const sfEsc = s => String(s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
   function sfRenderList(){
     if(!sfSceneTree.length){ sfSceneList.innerHTML='<div class="sf-empty">No media sources found.</div>'; return; }
     sfSceneList.innerHTML = sfSceneTree.map(({scene,sources})=>{
@@ -1774,12 +1837,12 @@ if(document.body.classList.contains('obs-mode')){
         const typeHidden = (type==='video' && !sfTypeFilter.video) || (type==='audio' && !sfTypeFilter.audio);
         const checked = sfChecked[n] !== false;
         return `<label class="sf-src-row${typeHidden?' sf-filtered-out':''}">
-          <input type="checkbox" class="sf-src-chk" data-src="${n.replace(/"/g,'&quot;')}" ${checked?'checked':''}>
-          <span class="sf-src-name">${n}</span>
+          <input type="checkbox" class="sf-src-chk" data-src="${sfEsc(n)}" ${checked?'checked':''}>
+          <span class="sf-src-name">${sfEsc(n)}</span>
           <span class="sf-src-type">${type}</span>
         </label>`;
       }).join('');
-      return `<div class="sf-scene"><div class="sf-scene-name">${scene}</div>${rows}</div>`;
+      return `<div class="sf-scene"><div class="sf-scene-name">${sfEsc(scene)}</div>${rows}</div>`;
     }).join('');
     sfSceneList.querySelectorAll('.sf-src-chk').forEach(chk=>{
       chk.addEventListener('click', e=>{
@@ -1804,7 +1867,7 @@ if(document.body.classList.contains('obs-mode')){
   /* State */
   let mWs=null, mIdent=false, mReqId=0;
   const mPend=new Map(), mSrcLoop=new Map();
-  let mReconn=null, mMediaList=[], mVisSet=null, mCurScene=null;
+  let mReconn=null, mMediaList=[], mVisSet=null, mCurScene=null, mNoRetry=false;
   let mActive=null, mLastRemSec=Infinity, mLState='green', mLBlink=false;
   const mSpoken=new Set();
 
@@ -1866,25 +1929,52 @@ if(document.body.classList.contains('obs-mode')){
     });
   }
 
+  const M_LOCAL_RE = /^(localhost|127(\.\d{1,3}){3}|\[?::1\]?)$/i;
+
   async function mConnect(){
     if(mWs){try{mWs.onclose=null;mWs.close();}catch(e){}}
-    clearTimeout(mReconn); mIdent=false;
+    clearTimeout(mReconn); mIdent=false; mNoRetry=false;
+    mShowErr('');
+    mSaveWsCfg();
+
+    const host = (mHostEl.value||'').trim();
+    const port = (mPortEl.value||'').trim();
+    if(!host || !port){ mStatus(false,'Missing host or port'); mShowErr('Enter the host and port of the OBS WebSocket server.'); return; }
+
+    /* A page served over HTTPS may only open ws:// to a local address.
+       Any other host is blocked by the browser before the socket is created —
+       report the real reason instead of a generic "invalid address". */
+    if(location.protocol==='https:' && !M_LOCAL_RE.test(host)){
+      mStatus(false,'Blocked by HTTPS');
+      mShowErr('This page is served over HTTPS, so the browser blocks an insecure ws:// connection to "'+host+'". '+
+               'Use localhost, or open index.html locally (file://) or over http:// to reach an OBS on another machine.');
+      return;
+    }
+
     mStatus(false,'Connecting…');
     let s;
-    try{s=new WebSocket(`ws://${mHostEl.value}:${mPortEl.value}`);}
-    catch(e){mStatus(false,'Invalid address');return;}
+    try{s=new WebSocket(`ws://${host}:${port}`);}
+    catch(e){mStatus(false,'Invalid address');mShowErr(e && e.message ? e.message : 'Could not open the connection.');return;}
     mWs=s;
     mWs.onmessage=async ev=>{
       const msg=JSON.parse(ev.data);
       if(msg.op===0){
         const id={op:1,d:{rpcVersion:1}};
         if(msg.d.authentication){
+          /* OBS requires a password and we have none — stop here instead of
+             looping on a connection that can never identify. */
+          if(!mPwdEl.value){
+            mNoRetry=true; mStatus(false,'Password required');
+            mShowErr('This OBS WebSocket server requires a password (OBS → Tools → WebSocket Server Settings → Show Connect Info).');
+            try{mWs.close();}catch(e){}
+            return;
+          }
           const sec=await mSha(mPwdEl.value+msg.d.authentication.salt);
           id.d.authentication=await mSha(sec+msg.d.authentication.challenge);
         }
         mWs.send(JSON.stringify(id));
       }
-      else if(msg.op===2){mIdent=true;mStatus(true,'Connected');mLoadSources();mLoadScene();}
+      else if(msg.op===2){mIdent=true;mStatus(true,'Connected');mShowErr('');mLoadSources();mLoadScene();}
       else if(msg.op===7){const p=mPend.get(msg.d.requestId);if(p){mPend.delete(msg.d.requestId);p(msg.d);}}
       else if(msg.op===5){
         const t=msg.d.eventType;
@@ -1894,7 +1984,18 @@ if(document.body.classList.contains('obs-mode')){
         else if(['SceneItemCreated','SceneItemRemoved','SceneItemEnableStateChanged'].includes(t)) mRefreshVis();
       }
     };
-    mWs.onclose=()=>{mIdent=false;mStatus(false,'Disconnected — retrying');mReconn=setTimeout(mConnect,3000);};
+    mWs.onclose=ev=>{
+      mIdent=false;
+      /* 4009 = OBS rejected the authentication. Retrying with the same wrong
+         password every 3 s would just spin forever, so stop and say why. */
+      if(ev && ev.code===4009){
+        mNoRetry=true; mStatus(false,'Wrong password');
+        mShowErr('OBS refused the password. Check it in OBS → Tools → WebSocket Server Settings → Show Connect Info.');
+      }
+      if(mNoRetry){ mNoRetry=false; return; }
+      mStatus(false,'Disconnected — retrying');
+      mReconn=setTimeout(mConnect,3000);
+    };
   }
 
   /* Scene */
@@ -1952,7 +2053,15 @@ if(document.body.classList.contains('obs-mode')){
     if(!mIdent||!mCurScene){mVisSet=null;return;}
     const acc=new Set(); await mCollect(mCurScene,acc,0,new Set()); mVisSet=acc;
   }
-  setInterval(mRefreshVis,2000);
+  /* Self-scheduling loop instead of setInterval: mRefreshVis awaits several OBS
+     round-trips, so a fixed interval could start a new pass before the previous
+     one finished and stack up requests. */
+  (async function mVisLoop(){
+    for(;;){
+      try{ await mRefreshVis(); }catch(e){}
+      await new Promise(r=>setTimeout(r,2000));
+    }
+  })();
 
   /* Idle state */
   function mIdle(){
@@ -2028,7 +2137,14 @@ if(document.body.classList.contains('obs-mode')){
       mApply(name,st.responseData);
     else mIdle();
   }
-  setInterval(mPoll,250);
+  /* Same reason as mVisLoop: in Auto mode mPoll queries every eligible source
+     sequentially, which can exceed 250 ms on a big scene collection. */
+  (async function mPollLoop(){
+    for(;;){
+      try{ await mPoll(); }catch(e){}
+      await new Promise(r=>setTimeout(r,250));
+    }
+  })();
 
   /* Dial font-size follows the actual card width (grid resize, solo, HIDE, OBS…),
      not just the viewport — keeps STAND BY the same size as running digits, always fit to ring. */
@@ -2046,6 +2162,10 @@ if(document.body.classList.contains('obs-mode')){
   setTimeout(mScaleDial, 50);
 
   mIdle();
+
+  /* Auto-connect when a configuration was saved previously — so an OBS Browser
+     Source (?tool=media) comes back online on its own after a restart. */
+  if(mHasSavedCfg) setTimeout(mConnect, 400);
 })();
 
 /* ===== DRAG & DROP CARD REORDER ===== */
