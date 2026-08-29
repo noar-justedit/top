@@ -4,7 +4,7 @@
 
 Clock, stopwatch, countdown timer and OBS media countdown for live event production — designed for stage managers, event directors, and broadcast operators.
 
-![TOP! — Live Event Time Control](https://raw.githubusercontent.com/noar-justedit/top/main/screenshot-v2.png)
+![TOP! — Live Event Time Control](https://raw.githubusercontent.com/noar-justedit/top/main/screenshot.png)
 
 **Use it now:** [noar-justedit.github.io/top](https://noar-justedit.github.io/top/)
 
