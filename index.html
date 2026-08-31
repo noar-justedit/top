@@ -18,7 +18,7 @@
   Source: https://github.com/noar-justedit/top
 -->
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="booting">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -46,6 +46,10 @@
     --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  /* The dial and the row heights are sized in JS, so the first paint would show
+     a full-size clock shrinking into place. Hold the page back for the two
+     frames that takes; a hard timer removes the veil whatever happens. */
+  html.booting body{visibility:hidden;}
   /* Touch: kill the double-tap-to-zoom gesture (and the 300 ms click delay that
      comes with it) while keeping pinch zoom and scrolling. Without this, tapping
      the timer's + / − buttons twice in a row zooms the page on iPad instead of
@@ -101,10 +105,28 @@
     cursor:pointer;transition:.13s;white-space:nowrap;line-height:1;
   }
   .topbar button:hover{color:var(--txt);border-color:#34343d;}
-  @media(max-width:520px){
-    .brand h1{font-size:22px;}
-    .topbar button{padding:8px 11px;font-size:11px;}
-    .logo{height:32px;}
+  /* The top bar has to survive a phone: it wraps instead of pushing the page
+     sideways, and the subtitle and logo step back when there is no room. */
+  .topbar{flex-wrap:wrap;row-gap:10px;}
+  .brand{min-width:0;}
+  .brand-right{flex-wrap:wrap;row-gap:8px;justify-content:flex-end;}
+  @media(max-width:1200px){
+    .brand .sub{display:none;}
+  }
+  @media(max-width:1000px){
+    .logo{height:26px;}
+    .topbar button{padding:5px 7px;letter-spacing:.06em;}
+    .vol-wrap{padding:6px 9px;gap:6px;}
+    #volSlider{width:54px;}
+    .gridsize{padding:5px 8px;gap:5px;}
+  }
+  @media(max-width:640px){
+    .brand h1{font-size:20px;}
+    .logo{display:none;}
+    .topbar{gap:10px;}
+    .brand-right{gap:8px;}
+    .vol-wrap{padding:5px 9px;}
+    #volSlider{width:56px;}
   }
 
   /* One single grid holds every card. The user sets columns x rows in the top
@@ -128,11 +150,8 @@
   .grid-splitter.row{left:0;right:0;height:16px;margin-top:-8px;cursor:row-resize;z-index:60;}
   .grid-splitter:hover,.grid-splitter.active{background:rgba(255,176,0,.16);}
   body[class*="tool-"] .grid-splitter,body.obs-mode .grid-splitter{display:none !important;}
-  @media(orientation:portrait){.grid-splitter{display:none !important;}}
-  @media(orientation:portrait){
-    .grid{grid-template-columns:1fr !important;grid-template-rows:none !important;
-          grid-auto-rows:minmax(200px,auto) !important;}
-  }
+  /* Portrait is a grid like any other now — it simply has its own remembered
+     shape, applied on rotation. */
 
   /* ---------- Cards ---------- */
   .card{
@@ -156,7 +175,7 @@
   .card .label .pip{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);}
 
   /* ---------- Main clock ---------- */
-  #clockCard{display:flex;flex-direction:column;align-items:center;}
+  .card[data-type="clock"]{display:flex;flex-direction:column;align-items:center;}
   .dial-wrap{
     position:relative;width:100%;max-width:440px;aspect-ratio:1;margin:6px auto 4px;
   }
@@ -264,7 +283,8 @@
   .step:active{background:#2a2a32;}
   .time-input .cap{font-size:9px;letter-spacing:.12em;color:var(--txt-dim);text-transform:uppercase;}
 
-  .hint{font-size:11px;color:var(--txt-dim);letter-spacing:.06em;margin-top:12px;line-height:1.5;text-align:center;}
+  .sc-note{font-size:11px;color:var(--txt-dim);line-height:1.6;margin:2px 0 10px;}
+  .sc-note kbd{padding:0 4px;}
   kbd{font-family:var(--mono);background:#1a1a20;border:1px solid var(--panel-edge);border-radius:4px;padding:1px 6px;font-size:11px;color:var(--txt);}
 
   /* card header + view toggle */
@@ -386,10 +406,7 @@
     padding:0 !important;overflow:hidden !important;resize:none !important;
   }
   /* Only selected card visible, fixed in viewport */
-  body.obs-mode.tool-clock  #clockCard,
-  body.obs-mode.tool-timer  #timerCard,
-  body.obs-mode.tool-chrono #chronoCard,
-  body.obs-mode.tool-media  #mediaCard{
+  body.obs-mode .card.solo-on{
     display:flex !important;flex-direction:column;
     align-items:center;justify-content:center;
     position:fixed !important;inset:0 !important;
@@ -401,7 +418,7 @@
   body.obs-mode .card:not(.dialmode) .flat-view{display:flex !important;align-items:center;justify-content:center;flex:1;width:100%;}
   body.obs-mode .card.dialmode .dial-view{display:flex !important;align-items:center;justify-content:center;flex:1;width:100%;}
   /* Clock: dial-wrap is a direct card child (not inside flat/dial-view) */
-  body.obs-mode.tool-clock #clockCard > .dial-wrap{display:block !important;}
+  body.obs-mode.tool-clock .card.solo-on > .dial-wrap{display:block !important;}
 
   /* Readout: fills available space */
   body.obs-mode .readout{font-size:clamp(60px,14vw,200px) !important;text-align:center;margin:0;}
@@ -418,7 +435,7 @@
   body.obs-mode .dig-tmr{font-size:clamp(24px,13vmin,140px) !important;}
 
   /* Clock: dial fills full area */
-  body.obs-mode.tool-clock #clockCard .dial-wrap{
+  body.obs-mode.tool-clock .card.solo-on .dial-wrap{
     display:block !important;
     width:min(100vw,100vh) !important;
     height:min(100vw,100vh) !important;
@@ -438,18 +455,9 @@
   .obs-hint.hidden{opacity:0;}
 
   /* ========== TOOL FILTER (normal mode, no OBS) ========== */
-  body:not(.obs-mode).tool-clock  #chronoCard,
-  body:not(.obs-mode).tool-clock  #timerCard,
-  body:not(.obs-mode).tool-clock  #mediaCard{display:none;}
-  body:not(.obs-mode).tool-timer  #clockCard,
-  body:not(.obs-mode).tool-timer  #chronoCard,
-  body:not(.obs-mode).tool-timer  #mediaCard{display:none;}
-  body:not(.obs-mode).tool-chrono #clockCard,
-  body:not(.obs-mode).tool-chrono #timerCard,
-  body:not(.obs-mode).tool-chrono #mediaCard{display:none;}
-  body:not(.obs-mode).tool-media  #clockCard,
-  body:not(.obs-mode).tool-media  #chronoCard,
-  body:not(.obs-mode).tool-media  #timerCard{display:none;}
+  /* Maximize: exactly one card carries .solo-on and everything else steps
+     aside. The body also gets tool-<type> so the type-specific sizing applies. */
+  body:not(.obs-mode)[class*="tool-"] .card:not(.solo-on){display:none !important;}
   body:not(.obs-mode)[class*="tool-"] .grid{grid-template-columns:1fr !important;
     grid-template-rows:none !important;grid-auto-rows:auto !important;}
   body:not(.obs-mode)[class*="tool-"] .card{overflow:visible;}
@@ -559,10 +567,6 @@
     background:var(--green);box-shadow:0 0 10px #19e36b88;
     transition:background .45s,box-shadow .45s;}
   /* OBS mode for media tool */
-  body.obs-mode.tool-media #mediaCard{display:flex !important;flex-direction:column;justify-content:center;height:100%;}
-  body:not(.obs-mode).tool-media #clockCard,
-  body:not(.obs-mode).tool-media #chronoCard,
-  body:not(.obs-mode).tool-media #timerCard{display:none;}
 
   .cap-dial{font-size:clamp(10px,1.6vw,14px);letter-spacing:.3em;margin-bottom:4px;}
   /* Media card: both views always visible */
@@ -570,8 +574,8 @@
   #mediaCard .dial-view{display:flex !important;justify-content:center;margin:4px 0 10px;width:100%;}
   #mediaCard .dial-sm{max-width:min(46vh,300px);width:100%;position:relative;aspect-ratio:1;margin:0 auto;}
   #mTdial .digits{font-size:var(--dlfs,clamp(32px,8vw,50px)) !important;}
-  body.obs-mode.tool-media #mediaCard .dial-view{display:flex !important;align-items:center;justify-content:center;flex:1;width:100%;}
-  body.obs-mode.tool-media #mediaCard .flat-view{display:none !important;}
+  body.obs-mode.tool-media .card.solo-on .dial-view{display:flex !important;align-items:center;justify-content:center;flex:1;width:100%;}
+  body.obs-mode.tool-media .card.solo-on .flat-view{display:none !important;}
   /* Drag & drop — only the grip icon moves a card */
   .draghandle{display:inline-flex;align-items:center;flex-shrink:0;color:var(--txt-dim);
     cursor:grab;padding:1px;border-radius:4px;transition:color .13s,background .13s;}
@@ -583,11 +587,6 @@
   .card.drop-target{outline:2px dashed var(--amber);outline-offset:-2px;}
   /* SOLO mode: only the selected card, in-page */
   body:not(.obs-mode)[class*="tool-"] .grid{display:block;}
-  /* while a built-in card is soloed, extra timer cards stay hidden */
-  body:not(.obs-mode).tool-clock  .t-card:not(#timerCard),
-  body:not(.obs-mode).tool-timer  .t-card:not(#timerCard),
-  body:not(.obs-mode).tool-chrono .t-card,
-  body:not(.obs-mode).tool-media  .t-card{display:none;}
   body:not(.obs-mode)[class*="tool-"] .fs-info{
     display:flex;gap:24px;align-items:center;justify-content:center;flex-wrap:wrap;
     position:sticky;bottom:0;width:100%;margin-top:auto;padding:10px 16px;
@@ -598,7 +597,7 @@
   body:not(.obs-mode)[class*="tool-"] .dial-sm{max-width:min(64vh,64vw);}
   body:not(.obs-mode)[class*="tool-"] .dial-sm .digits{font-size:clamp(44px,10vw,90px) !important;}
   body:not(.obs-mode)[class*="tool-"] #mTdial .digits{font-size:var(--dlfs,clamp(44px,10vw,90px)) !important;}
-  body:not(.obs-mode).tool-media #mediaCard .dial-sm{max-width:min(56vh,56vw);}
+  body:not(.obs-mode).tool-media .card.solo-on .dial-sm{max-width:min(56vh,56vw);}
 
   /* ========== ADAPTIVE CARD CONTENT ==========
      Rows share the height of the screen, so a card can end up shorter than its
@@ -610,7 +609,6 @@
      auto and size containment would collapse them. */
   .card.c-compact{padding:14px;}
   .card.c-tight{padding:11px;}
-  .card.c-compact .hint{display:none;}
   .card.c-compact .readout{font-size:clamp(34px,6.5vw,52px);margin:4px 0 2px;}
   .card.c-tight   .readout{font-size:clamp(26px,5vw,40px);margin:2px 0 0;}
   .card.c-compact .time-input{margin-top:7px;gap:8px;}
@@ -668,6 +666,9 @@
   /* The identity colour is always on: card outline, pip and name.
      Selection only adds the glow — never removes the colour. */
   .t-card{--tcol:#19e36b;border-color:var(--tcol);}
+  .c-card{--tcol:#f5f5fa;border-color:var(--tcol);}
+  .c-card .label .pip{background:var(--tcol);box-shadow:0 0 8px var(--tcol);}
+  .c-card .c-name{color:var(--tcol);}
   .t-card .label .pip{background:var(--tcol);box-shadow:0 0 8px var(--tcol);}
   .t-card .t-name{color:var(--tcol);}
   .t-card.t-active{
@@ -712,12 +713,6 @@
   .tm-err.show{display:block;}
 
   /* Solo view for an extra timer — reuses the generic [class*="tool-"] sizing */
-  /* !important: #clockCard has an id-level display rule that would win otherwise */
-  body:not(.obs-mode).tool-xtimer .card:not(.solo-on){display:none !important;}
-  body.obs-mode.tool-xtimer .t-card.solo-on{
-    display:flex !important;flex-direction:column;align-items:center;justify-content:center;
-    position:fixed !important;inset:0 !important;width:100vw !important;height:100vh !important;
-  }
 
   /* Layout warning toast */
   .toast{position:fixed;left:50%;top:14px;transform:translate(-50%,-140%);
@@ -727,6 +722,37 @@
     box-shadow:0 18px 40px -18px #000;transition:transform .22s ease,opacity .22s ease;opacity:0;}
   .toast.show{transform:translate(-50%,0);opacity:1;}
   .gridsize.err input{border-color:var(--red);box-shadow:0 0 0 2px #ff2a1f22;}
+
+  /* ===== ICON BUTTONS ON EVERY CARD ===== */
+  .iconbtn{display:inline-flex;align-items:center;justify-content:center;
+    width:26px;height:24px;padding:0;border-radius:7px;flex-shrink:0;
+    color:var(--txt-dim);background:#16161c;border:1px solid var(--panel-edge);
+    cursor:pointer;transition:.13s;}
+  .iconbtn svg{width:14px;height:14px;display:block;}
+  .iconbtn:hover{color:var(--txt);border-color:#3a3a44;}
+  .closebtn:hover{color:#fff;background:#8c1f17;border-color:var(--red);}
+  .card.maximized .maxbtn{color:var(--amber);border-color:#5a3d08;}
+
+  /* ===== NEW CARD ===== */
+  .newcard{display:inline-flex;align-items:center;gap:6px;
+    color:#0d0d11 !important;background:var(--green) !important;
+    border:1px solid var(--green) !important;font-weight:800 !important;}
+  .newcard svg{width:13px;height:13px;}
+  .newcard:hover{box-shadow:0 0 14px #19e36b55;color:#0d0d11 !important;}
+  .newcard.full{color:var(--txt-dim) !important;background:#16161c !important;
+    border-color:var(--panel-edge) !important;font-weight:600 !important;}
+  .newcard.full:hover{box-shadow:none;color:var(--amber) !important;border-color:#5a3d08 !important;}
+  body.obs-mode .newcard,body[class*="tool-"] .newcard{display:none;}
+  .cp-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+  .cp-opt{display:flex;align-items:flex-start;gap:11px;text-align:left;width:100%;
+    padding:12px 14px;border-radius:10px;cursor:pointer;transition:.13s;
+    background:#0d0d11;border:1px solid var(--panel-edge);color:var(--txt);
+    font-family:var(--sans);font-size:13px;font-weight:600;}
+  .cp-opt:hover{border-color:#3a3a44;}
+  .cp-opt.sel{border-color:var(--green);background:#0c1a12;box-shadow:0 0 0 1px var(--green);}
+  .cp-opt .cp-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+  .cp-opt .cp-sub{display:block;font-size:10px;font-weight:500;color:var(--txt-dim);
+    text-transform:none;margin-top:3px;line-height:1.45;}
 
   /* ===== GRID SIZE CONTROL ===== */
   .gridsize{display:flex;align-items:center;gap:6px;
@@ -753,13 +779,6 @@
   #volSlider::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:#f5f5fa;
     border:2px solid var(--green);box-shadow:0 0 6px var(--green-dim);cursor:pointer;}
   #volSlider::-moz-range-track{height:4px;border-radius:2px;background:#2a2a32;}
-  /* ===== CARD COLLAPSE (HIDE) ===== */
-  .card.collapsed{resize:none !important;min-height:0 !important;overflow:hidden;}
-  .card.collapsed > *:not(.cardhead){display:none !important;}
-  #mediaCard.collapsed > .flat-view,
-  #mediaCard.collapsed > .dial-view,
-  #mediaCard.collapsed > .media-ws-settings{display:none !important;}
-  .card.collapsed .cardhead{margin-bottom:0;}
 
   /* ===== SOURCE FILTER MODAL ===== */
   .src-filter-box{width:min(520px,92vw);}
@@ -801,7 +820,7 @@
 <div class="topbar">
   <div class="brand">
     <span class="dot"></span>
-    <div class="brand-txt"><h1>TOP!</h1><span class="sub">Live Event Time Control · v2.5.0</span></div>
+    <div class="brand-txt"><h1>TOP!</h1><span class="sub">Live Event Time Control · v2.6.2</span></div>
   </div>
   <div class="brand-right">
     <div class="vol-wrap" id="volWrap" title="Master volume">
@@ -814,6 +833,7 @@
       <span class="gs-x">×</span>
       <input type="number" id="gsRows" min="1" max="6" value="2" inputmode="numeric" title="Rows">
     </div>
+    <button id="newCardBtn" class="newcard"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>NEW CARD</button>
     <button id="shortcutsBtn">⌨ SHORTCUTS</button>
     <button id="fsBtn">⤢ FULL SCREEN</button>
     <a href="https://www.just-edit.fr" target="_blank" rel="noopener"><img class="logo" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjE4LjggMTg3LjAgNDc0LjMgMTM4LjEiPgogIDwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyOS44LjIsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiAyLjEuMSBCdWlsZCAzKSAgLS0+CiAgPGRlZnM+CiAgICA8c3R5bGU+CiAgICAgIC5zdDAgewogICAgICAgIGZpbGw6ICNmZmY7CiAgICAgIH0KCiAgICAgIC5zdDEgewogICAgICAgIGZpbGw6ICM1OTM2ZDg7CiAgICAgIH0KICAgIDwvc3R5bGU+CiAgPC9kZWZzPgogIDxnPgogICAgPGc+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0zMi44NCwzMDguODd2LTEyLjJjMC0xLjQzLjM5LTIuMTUsMS4xOC0yLjE1LDIuNjIsMCw0LjQ3LS42NSw1LjU2LTEuOTQsMS4wOS0xLjI5LDEuNjQtMy4zLDEuNjQtNi4wMnYtNTkuMDdjMC0xLjQzLjcyLTIuMTUsMi4xNS0yLjE1aDEzLjg3YzEuNDMsMCwyLjE1LjcyLDIuMTUsMi4xNXY1OS4xM2MwLDcuODUtMi4wOSwxMy44OC02LjI2LDE4LjA5LTQuMTgsNC4yMS0xMC4yMiw2LjMyLTE4LjE0LDYuMzItMS40MywwLTIuMTUtLjcyLTIuMTUtMi4xNVoiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTExOC4zNCwyMjUuMzNoMTMuOThjMS40MywwLDIuMTUuNzIsMi4xNSwyLjE1djYwLjc0YzAsMS40My0uNzIsMi4xNS0yLjE1LDIuMTVoLTEwLjdjLTEuMTgsMC0yLjAxLS41Ni0yLjQ3LTEuNjdsLTIuMzEtNS41NGMtMi41MSwyLjQtNS42MSw0LjM4LTkuMyw1Ljk0LTMuNjksMS41Ni03LjIyLDIuMzQtMTAuNTksMi4zNC01LjI3LDAtOS44OS0xLjItMTMuODctMy42cy03LjA2LTUuOC05LjI1LTEwLjE5Yy0yLjE5LTQuMzktMy4yOC05LjQ3LTMuMjgtMTUuMjR2LTM0Ljk0YzAtMS40My43Mi0yLjE1LDIuMTUtMi4xNWgxMy45OGMxLjQzLDAsMi4xNS43MiwyLjE1LDIuMTV2MzIuOWMwLDIuODcuNTMsNS4zOSwxLjU5LDcuNTUsMS4wNiwyLjE3LDIuNTQsMy44NCw0LjQ2LDUuMDNzNC4xNSwxLjc3LDYuNjksMS43N2MyLjY5LDAsNS4xNS0uNjQsNy4zOS0xLjkxLDIuMjQtMS4yNyw0LTIuOTUsNS4yOS01LjAzczEuOTQtNC4yOCwxLjk0LTYuNjF2LTMzLjdjMC0xLjQzLjcyLTIuMTUsMi4xNS0yLjE1WiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QwIiBkPSJNMTU1LjIyLDI4OS40M2MtNC4yOC0xLjctOC4yOS00LjItMTIuMDEtNy41LS41Ny0uNDYtLjg2LS45OC0uODYtMS41NiwwLS40Ni4yLS45NS41OS0xLjQ1bDcuMjYtOS4wOGMuNS0uNjEsMS4wMi0uOTEsMS41Ni0uOTEuMzksMCwuODguMiwxLjQ1LjU5LDIuNjIsMS45Nyw1LjIsMy40OSw3Ljc3LDQuNTcsMi41NiwxLjA4LDUuMTUsMS42MSw3Ljc3LDEuNjEsMS43OSwwLDMuMjMtLjM1LDQuMy0xLjA1LDEuMDctLjcsMS42MS0xLjY5LDEuNjEtMi45OCwwLS44Ni0uMzEtMS42NS0uOTQtMi4zN3MtMS43MS0xLjQ0LTMuMjUtMi4xOGMtMS41NC0uNzMtMy43My0xLjU5LTYuNTYtMi41NS01LjQxLTEuODMtOS44Ny00LjMyLTEzLjM4LTcuNDctMy41MS0zLjE1LTUuMjctNy40OS01LjI3LTEzLjAxLDAtMy41MS44Ny02Ljc3LDIuNjEtOS43OCwxLjc0LTMuMDEsNC4zOS01LjQ0LDcuOTYtNy4yOCwzLjU3LTEuODUsNy45NS0yLjc3LDEzLjE0LTIuNzcsMy41OCwwLDcuMjYuNzEsMTEuMDUsMi4xMiwzLjc4LDEuNDIsNy4xMiwzLjUyLDEwLjAyLDYuMzIuNS41Ljc1LDEsLjc1LDEuNSwwLC40My0uMjUuOTMtLjc1LDEuNWwtOC40OSw4Ljc2Yy0uNDcuNS0uOTcuNzUtMS41MS43NS0uNDcsMC0uOTctLjIxLTEuNS0uNjUtMS40Ny0xLjE4LTMuMDktMi4xNi00Ljg2LTIuOTMtMS43Ny0uNzctMy41NC0xLjE2LTUuMjktMS4xNnMtMy4yMi4zNC00LjE3LDEuMDJjLS45NS42OC0xLjQyLDEuNjEtMS40MiwyLjc5LDAsLjgyLjM1LDEuNTcsMS4wNSwyLjIzczEuODIsMS4zMywzLjM2LDEuOTljMS41NC42NiwzLjY5LDEuNDQsNi40NSwyLjM0LDUuOTEsMS45LDEwLjQ4LDQuNDQsMTMuNzEsNy42MywzLjIzLDMuMTksNC44NCw3LjUxLDQuODQsMTIuOTYsMCwzLjU1LS45MSw2Ljg5LTIuNzEsMTAuMDItMS44MSwzLjE0LTQuNDQsNS42Ny03LjksNy42MS0zLjQ2LDEuOTMtNy41NSwyLjktMTIuMjgsMi45LTUuMDksMC05Ljc3LS44NS0xNC4wNi0yLjU1WiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QwIiBkPSJNMjE2LjkzLDI5MC4zN2gtMTMuOThjLTEuNDMsMC0yLjE1LS43Mi0yLjE1LTIuMTV2LTQ1Ljk2aC01LjM4Yy0xLjQzLDAtMi4xNS0uNzItMi4xNS0yLjE1di0xMi42M2MwLTEuNDMuNzItMi4xNSwyLjE1LTIuMTVoNS4yN3YtMTEuNzJjMC0xLjMzLjY1LTIuMTEsMS45NC0yLjM3bDE0LjE0LTIuNzRjLjE0LS4wMy4zMi0uMDUuNTQtLjA1LjU3LDAsMS4wMi4xOCwxLjM0LjU0LjMyLjM2LjQ4Ljg0LjQ4LDEuNDV2MTQuODloMTAuMTFjMS40MywwLDIuMTUuNzIsMi4xNSwyLjE1djEyLjYzYzAsMS40My0uNzIsMi4xNS0yLjE1LDIuMTVoLTEwLjE2djQ1Ljk2YzAsMS40My0uNzIsMi4xNS0yLjE1LDIuMTVaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0yNjQuMjgsMjg3LjQyYy01LjE2LTMuMDQtOS4xOC03LjE1LTEyLjA3LTEyLjMxLTIuODgtNS4xNi00LjMzLTEwLjc5LTQuMzMtMTYuODhzMS4zNy0xMS44Myw0LjExLTE3LjAxYzIuNzQtNS4xOCw2LjU3LTkuMywxMS40OC0xMi4zNiw0LjkxLTMuMDYsMTAuNDgtNC42LDE2LjcyLTQuNiw2Ljc0LDAsMTIuNTgsMS40NSwxNy41Miw0LjM1LDQuOTQsMi45LDguNzIsNi45MiwxMS4zMiwxMi4wNCwyLjYsNS4xMywzLjksMTAuOTUsMy45LDE3LjQ3LDAsMS40My0uMDcsMi44NS0uMjEsNC4yNS0uMTQsMS4zMy0uOSwxLjk5LTIuMjYsMS45OWgtNDMuODFjMS4xOCwzLjU4LDMuMjEsNi4zOCw2LjA3LDguMzksMi44NywyLjAxLDYuMTMsMy4wMSw5Ljc4LDMuMDEsMi4zMywwLDQuNDMtLjMzLDYuMzItMSwxLjg4LS42NiwzLjcyLTEuNjIsNS41MS0yLjg4LjQ3LS4zNi45My0uNTQsMS40LS41NC41NywwLDEuMDkuMzIsMS41Ni45N2w2LjYxLDkuNDFjLjMyLjQ3LjQ4LjkxLjQ4LDEuMzQsMCwuNjEtLjI5LDEuMTUtLjg2LDEuNjEtMi45NywyLjMzLTYuMyw0LjEzLTkuOTcsNS40LTMuNjcsMS4yNy03LjYxLDEuOTEtMTEuOCwxLjkxLTYuNDksMC0xMi4zMS0xLjUyLTE3LjQ3LTQuNTdaTTI4OS43MSwyNDIuNzVjLTIuNDQtMS45LTUuNDEtMi44NS04LjkyLTIuODVzLTYuNDIuOTctOC45NSwyLjljLTIuNTMsMS45My00LjMxLDQuNjQtNS4zNSw4LjEyaDI4LjM4Yy0xLTMuNTUtMi43Mi02LjI3LTUuMTYtOC4xN1oiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MSIgZD0iTTM2Ny45LDIwNi4yNWgxMy45OGMxLjQzLDAsMi4xNS43MiwyLjE1LDIuMTV2NzkuODJjMCwxLjQzLS43MiwyLjE1LTIuMTUsMi4xNWgtMTAuN2MtMS4xOCwwLTIuMDEtLjU2LTIuNDctMS42N2wtMS4zNC0zLjIyYy00LjQ4LDQuMTktMTAuMTEsNi4yOS0xNi44OCw2LjI5LTYuMTMsMC0xMS43Ny0xLjUxLTE2LjkzLTQuNTQtNS4xNi0zLjAzLTkuMjUtNy4xMy0xMi4yNi0xMi4zMS0zLjAxLTUuMTgtNC41Mi0xMC44NS00LjUyLTE3LjAxczEuNTEtMTEuNzYsNC41NC0xNi45MWMzLjAzLTUuMTQsNy4xMi05LjIyLDEyLjI4LTEyLjIzLDUuMTYtMy4wMSwxMC43OS00LjUyLDE2Ljg4LTQuNTJzMTEuMDcsMS42MywxNS4yNyw0Ljg5di0yMC43NWMwLTEuNDMuNzItMi4xNSwyLjE1LTIuMTVaTTM1OC45NSwyNzIuMjNjMi40NS0xLjM4LDQuMzktMy4zLDUuODEtNS43NSwxLjQxLTIuNDUsMi4xMi01LjIyLDIuMTItOC4zcy0uNy01LjkyLTIuMS04LjQxYy0xLjQtMi40OS0zLjMyLTQuNDUtNS43NS01Ljg5LTIuNDQtMS40My01LjE0LTIuMTUtOC4xMi0yLjE1cy01LjY3LjcxLTguMDksMi4xMmMtMi40MiwxLjQyLTQuMzIsMy4zOC01LjcsNS44OS0xLjM4LDIuNTEtMi4wNyw1LjMyLTIuMDcsOC40NHMuNjgsNS45LDIuMDQsOC4zM2MxLjM2LDIuNDQsMy4yMyw0LjM1LDUuNjIsNS43MiwyLjM4LDEuMzgsNS4wOCwyLjA3LDguMDksMi4wN3M1LjY5LS42OSw4LjE0LTIuMDdaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik00MTIuNzEsMjkwLjM3aC0xMy45OGMtMS40MywwLTIuMTUtLjcyLTIuMTUtMi4xNXYtNjAuNzRjMC0xLjQzLjcyLTIuMTUsMi4xNS0yLjE1aDEzLjk4YzEuNDMsMCwyLjE1LjcyLDIuMTUsMi4xNXY2MC43NGMwLDEuNDMtLjcyLDIuMTUtMi4xNSwyLjE1WiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QxIiBkPSJNNDQ0LjEzLDI5MC4zN2gtMTMuOThjLTEuNDMsMC0yLjE1LS43Mi0yLjE1LTIuMTV2LTQ1Ljk2aC01LjM4Yy0xLjQzLDAtMi4xNS0uNzItMi4xNS0yLjE1di0xMi42M2MwLTEuNDMuNzItMi4xNSwyLjE1LTIuMTVoNS4yN3YtMTEuNzJjMC0xLjMzLjY1LTIuMTEsMS45NC0yLjM3bDE0LjE0LTIuNzRjLjE0LS4wMy4zMi0uMDUuNTQtLjA1LjU3LDAsMS4wMi4xOCwxLjM0LjU0LjMyLjM2LjQ4Ljg0LjQ4LDEuNDV2MTQuODloMTAuMTFjMS40MywwLDIuMTUuNzIsMi4xNSwyLjE1djEyLjYzYzAsMS40My0uNzIsMi4xNS0yLjE1LDIuMTVoLTEwLjE2djQ1Ljk2YzAsMS40My0uNzIsMi4xNS0yLjE1LDIuMTVaIi8+CiAgICA8L2c+CiAgICA8cGF0aCBjbGFzcz0ic3QwIiBkPSJNNDMuMjEsMjAwLjk4aDE0LjI0YzEuMTksMCwyLjE1Ljk2LDIuMTUsMi4xNXYxMi42M2MwLDEuMTktLjk2LDIuMTUtMi4xNSwyLjE1aC0xNC4yNGMtMS4xOSwwLTIuMTUtLjk2LTIuMTUtMi4xNXYtMTIuNjNjMC0xLjE5Ljk2LTIuMTUsMi4xNS0yLjE1WiIvPgogICAgPHBhdGggY2xhc3M9InN0MSIgZD0iTTM5OC42MiwyMDEuNDFoMTQuMjRjMS4xOSwwLDIuMTUuOTYsMi4xNSwyLjE1djEyLjYzYzAsMS4xOS0uOTYsMi4xNS0yLjE1LDIuMTVoLTE0LjI0Yy0xLjE5LDAtMi4xNS0uOTYtMi4xNS0yLjE1di0xMi42M2MwLTEuMTkuOTYtMi4xNSwyLjE1LTIuMTVaIi8+CiAgPC9nPgogIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik00NjEuNzUsMjcyLjI4aDE0LjI0YzEuMTksMCwyLjE1Ljk2LDIuMTUsMi4xNXYxMi42M2MwLDEuMTktLjk2LDIuMTUtMi4xNSwyLjE1aC0xNC4yNGMtMS4xOSwwLTIuMTUtLjk2LTIuMTUtMi4xNXYtMTIuNjNjMC0xLjE5Ljk2LTIuMTUsMi4xNS0yLjE1WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTQxLjYzIDg1LjY4KSByb3RhdGUoLTEwKSIvPgo8L3N2Zz4=" alt="JustEdit" /></a>
@@ -823,12 +843,10 @@
 <div class="grid">
 
   <!-- CLOCK -->
-  <section class="card" id="clockCard">
+  <section class="card" id="clockCard" data-type="clock">
     <div class="cardhead">
       <div class="label"><span class="draghandle" title="Drag to move this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></span><span class="pip"></span>Computer time</div>
       <div class="cardbtns">
-        <button class="viewtog hidebtn" data-target="clockCard">▾ HIDE</button>
-        <button class="solobtn" data-target="clockCard">◱ SOLO</button>
         <div class="obs-wrap">
           <button class="obsbtn">⬡ OBS</button>
           <div class="obs-popup">
@@ -840,6 +858,8 @@
             </div>
           </div>
         </div>
+        <button class="iconbtn maxbtn" title="Maximize this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+        <button class="iconbtn closebtn" title="Close this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
     </div>
     <div class="dial-wrap">
@@ -854,21 +874,17 @@
   </section>
 
   <!-- TIMER -->
-  <section class="card t-card" id="timerCard" data-tid="main" style="--tcol:#19e36b">
+  <section class="card t-card" id="timerCard" data-type="timer" data-tid="main" style="--tcol:#19e36b">
     <div class="cardhead">
       <div class="label"><span class="draghandle" title="Drag to move this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></span><span class="pip"></span><span class="t-name">Timer</span><span class="t-armed">Armed</span><span id="overtimeBadge" class="overtime-badge"> OVERTIME</span></div>
       <div class="cardbtns">
-        <button class="viewtog newbtn" title="Create another independent timer">+ New</button>
         <button class="viewtog editbtn" title="Rename / recolour">✎ Edit</button>
-        <button class="viewtog delbtn" title="Remove this timer">✕</button>
         <label class="sound-sw" title="Timer sound on/off">
           <input type="checkbox" id="soundSwitch">
           <span class="sw-track"></span>
           <span class="sw-label">SOUND</span>
         </label>
         <button class="viewtog viewbtn" id="timerView">◷ Dial</button>
-        <button class="viewtog hidebtn" data-target="timerCard">▾ HIDE</button>
-        <button class="solobtn" data-target="timerCard">◱ SOLO</button>
         <div class="obs-wrap">
           <button class="obsbtn">⬡ OBS</button>
           <div class="obs-popup">
@@ -885,6 +901,8 @@
             </div>
           </div>
         </div>
+        <button class="iconbtn maxbtn" title="Maximize this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+        <button class="iconbtn closebtn" title="Close this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
     </div>
     <div class="flat-view">
@@ -939,22 +957,17 @@
       <button class="btn go" id="timerStart">Start</button>
       <button class="btn stop" id="timerReset">Reset</button>
     </div>
-    <div class="hint">Overtime shown in red with + prefix.<br>
-      <kbd>Space</kbd> start / pause &nbsp;·&nbsp; <kbd>R</kbd> reset &nbsp;·&nbsp; <kbd>Tab</kbd> next timer<br>
-      Shortcuts act on the selected timer — click a card to select it<br>
-      <kbd>◀</kbd><kbd>▶</kbd> navigate H/M/S &nbsp;·&nbsp; <kbd>▲</kbd><kbd>▼</kbd> or <kbd>+</kbd><kbd>−</kbd> adjust value</div>
     <div class="obs-ctrl-bar"></div>
     <div class="fs-info" id="timerFsInfo"></div>
   </section>
 
   <!-- STOPWATCH -->
-  <section class="card" id="chronoCard">
+  <section class="card c-card" id="chronoCard" data-type="chrono" style="--tcol:#f5f5fa">
     <div class="cardhead">
-      <div class="label"><span class="draghandle" title="Drag to move this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></span><span class="pip" style="background:#fff;box-shadow:0 0 8px #fff6"></span>Stopwatch</div>
+      <div class="label"><span class="draghandle" title="Drag to move this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></span><span class="pip"></span><span class="c-name">Stopwatch</span></div>
       <div class="cardbtns">
-        <button class="viewtog" id="chronoView">◷ Dial</button>
-        <button class="viewtog hidebtn" data-target="chronoCard">▾ HIDE</button>
-        <button class="solobtn" data-target="chronoCard">◱ SOLO</button>
+        <button class="viewtog editbtn" title="Rename / recolour">✎ Edit</button>
+        <button class="viewtog viewbtn" id="chronoView">◷ Dial</button>
         <div class="obs-wrap">
           <button class="obsbtn">⬡ OBS</button>
           <div class="obs-popup">
@@ -971,6 +984,8 @@
             </div>
           </div>
         </div>
+        <button class="iconbtn maxbtn" title="Maximize this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+        <button class="iconbtn closebtn" title="Close this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
     </div>
     <div class="flat-view">
@@ -992,7 +1007,7 @@
   </section>
 
   <!-- OBS MEDIA COUNTDOWN (WebSocket) -->
-  <section class="card" id="mediaCard">
+  <section class="card" id="mediaCard" data-type="media">
     <div class="cardhead">
       <div class="label">
         <span class="draghandle" title="Drag to move this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></span>
@@ -1006,8 +1021,6 @@
           <span class="sw-label">SOUND</span>
         </label>
         <button class="viewtog media-filter-btn" id="mSrcFilterBtn">☰ SOURCE FILTER</button>
-        <button class="viewtog hidebtn" data-target="mediaCard">▾ HIDE</button>
-        <button class="solobtn" data-target="mediaCard">◱ SOLO</button>
         <div class="obs-wrap">
           <button class="obsbtn">⬡ OBS</button>
           <div class="obs-popup">
@@ -1025,6 +1038,8 @@
           </div>
         </div>
               <button class="viewtog icon-btn" id="mSettingsBtn" title="OBS WebSocket settings"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button class="iconbtn maxbtn" title="Maximize this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+        <button class="iconbtn closebtn" title="Close this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
     </div>
 
@@ -1113,30 +1128,50 @@
       <button id="closeShortcuts">✕</button>
     </div>
     <div class="modal-body">
-      <div class="sc-section">TIMERS — act on the selected timer</div>
+      <div class="sc-section">TIMERS</div>
+      <div class="sc-note">Shortcuts act on the selected timer — click a card to select it.
+        A timer past zero counts up in red with a <kbd>+</kbd> prefix.</div>
       <div class="sc-row"><kbd>Space</kbd><span>Start / Pause</span></div>
       <div class="sc-row"><kbd>R</kbd><span>Reset to zero</span></div>
       <div class="sc-row"><kbd>Tab</kbd><span>Select the next timer (Shift+Tab: previous)</span></div>
       <div class="sc-row"><kbd>◀</kbd><kbd>▶</kbd><span>Navigate Hours / Min / Sec</span></div>
       <div class="sc-row"><kbd>▲</kbd><kbd>▼</kbd><span>Increment / Decrement active unit</span></div>
       <div class="sc-row"><kbd>+</kbd><kbd>−</kbd><span>Increment / Decrement active unit</span></div>
-      <div class="sc-section">STOPWATCH</div>
-      <div class="sc-row"><kbd>C</kbd><span>Start / Pause</span></div>
-      <div class="sc-row"><kbd>X</kbd><span>Reset</span></div>
+      <div class="sc-note">Holding the on-screen <kbd>+</kbd> or <kbd>−</kbd> button runs the value, faster as you hold.</div>
+      <div class="sc-section">STOPWATCHES</div>
+      <div class="sc-row"><kbd>C</kbd><span>Start / Pause the first stopwatch</span></div>
+      <div class="sc-row"><kbd>X</kbd><span>Reset the first stopwatch</span></div>
       <div class="sc-section">LAYOUT</div>
       <div class="sc-row"><kbd>☰</kbd><span>Drag a card by the grip left of its title</span></div>
       <div class="sc-row"><kbd>⇔</kbd><span>Drag between two cards to resize · double-click to even them out</span></div>
-      <div class="sc-section">SOLO VIEW</div>
-      <div class="sc-row"><kbd>F1</kbd><span>Clock — solo toggle</span></div>
-      <div class="sc-row"><kbd>F2</kbd><span>Timer — solo toggle</span></div>
-      <div class="sc-row"><kbd>F3</kbd><span>Stopwatch — solo toggle</span></div>
-      <div class="sc-row"><kbd>F4</kbd><span>OBS Media — solo toggle</span></div>
-      <div class="sc-row"><kbd>Esc</kbd><span>Close a dialog, then exit full screen, then exit solo view</span></div>
+      <div class="sc-section">MAXIMIZE</div>
+      <div class="sc-row"><kbd>F1</kbd><span>Clock</span></div>
+      <div class="sc-row"><kbd>F2</kbd><span>First timer</span></div>
+      <div class="sc-row"><kbd>F3</kbd><span>First stopwatch</span></div>
+      <div class="sc-row"><kbd>F4</kbd><span>OBS Media Countdown</span></div>
+      <div class="sc-row"><kbd>Esc</kbd><span>Close a dialog, then exit full screen, then back to the grid</span></div>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div id="cardPicker" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span class="modal-title">New card</span>
+      <button id="cpClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="cp-list" id="cpList"></div>
+      <div class="tm-err" id="cpErr"></div>
+      <div class="tm-actions">
+        <button class="btn go" id="cpOk">Add</button>
+        <button class="btn stop" id="cpCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div id="timerModal" class="modal-overlay">
   <div class="modal-box">
@@ -1154,7 +1189,7 @@
         <label>Colour</label>
         <div class="tm-swatches" id="tmSwatches"></div>
       </div>
-      <div class="tm-field">
+      <div class="tm-field" id="tmDurField">
         <label>Duration</label>
         <div class="tm-dur">
           <div class="tm-du"><input class="tm-input" type="number" id="tmH" min="0" max="99" value="0" inputmode="numeric"><span>Hours</span></div>
@@ -1272,10 +1307,6 @@ function lightRing(arr,litCount,head){
     if(i===head){ t.classList.add('on'); t.classList.add('head'); }
   }
 }
-const chronoTicks=buildTicks(document.getElementById('chronoDial'));
-const chronoDigits=document.getElementById('chronoDigits');
-const chronoCard=document.getElementById('chronoCard');
-const timerCard=document.getElementById('timerCard');
 
 function renderClock(){
   const now = new Date();
@@ -1301,14 +1332,12 @@ function renderClock(){
   }
 }
 
-/* ================= STOPWATCH ================= */
-const chronoOut = document.getElementById('chronoOut');
-const chronoStartBtn = document.getElementById('chronoStart');
-const chronoResetBtn = document.getElementById('chronoReset');
+/* ================= STOPWATCHES (multi-instance) =================
+   Same idea as the timers: bindChrono() attaches an independent stopwatch to a
+   card element, so several can run side by side, each with its own name and
+   colour. */
+const CHRONOS = [];
 
-let chRunning=false, chStart=0, chAcc=0;
-
-function chElapsed(){ return chAcc + (chRunning ? performance.now()-chStart : 0); }
 function fmtChrono(ms){
   const totalCs = Math.floor(ms/10);
   const cs = totalCs%100;
@@ -1316,30 +1345,65 @@ function fmtChrono(ms){
   const s = totalS%60, mm = Math.floor(totalS/60)%60, hh = Math.floor(totalS/3600);
   return pad(hh)+':'+pad(mm)+':'+pad(s)+'<span class="ms">.'+pad(cs)+'</span>';
 }
-let lastChSec=-1;
-function renderChrono(){
-  const ms = chElapsed();
-  chronoOut.innerHTML = fmtChrono(ms);
-  const totalS = Math.floor(ms/1000);
-  chronoDigits.textContent = fmtClock3(totalS);
-  const sec = totalS%60;
-  if(sec !== lastChSec){ lightRing(chronoTicks, sec, sec); lastChSec = sec; }
+
+function bindChrono(card, cfg){
+  const q = s => card.querySelector(s);
+  const c = {
+    id:cfg.id, name:cfg.name, color:cfg.color, card,
+    running:false, start:0, acc:0, lastSec:-1, el:{}
+  };
+  c.el.out     = q('.flat-view .readout.chr');
+  c.el.digits  = q('.dial-view .digits.dig-chr');
+  c.el.svg     = q('.dial-view svg.dial');
+  c.el.start   = q('.btns .btn.go');
+  c.el.reset   = q('.btns .btn.stop');
+  c.el.viewBtn = q('.viewbtn');
+  c.el.name    = q('.c-name');
+  /* a clone taken before the ticks were drawn has an empty dial */
+  const lines = c.el.svg ? c.el.svg.querySelectorAll('line') : [];
+  c.ticks = lines.length ? Array.from(lines) : (c.el.svg ? buildTicks(c.el.svg) : []);
+
+  card.style.setProperty('--tcol', c.color);
+  if(c.el.name) c.el.name.textContent = c.name;
+
+  c.elapsed = () => c.acc + (c.running ? performance.now()-c.start : 0);
+  c.toggle = () => {
+    unlockAudio();
+    if(c.running){
+      c.acc = c.elapsed(); c.running = false;
+      c.el.start.textContent='Resume'; c.el.start.className='btn go';
+    } else {
+      c.start = performance.now(); c.running = true;
+      c.el.start.textContent='Pause'; c.el.start.className='btn pause';
+    }
+  };
+  c.doReset = () => {
+    c.running=false; c.start=0; c.acc=0;
+    c.el.start.textContent='Start'; c.el.start.className='btn go';
+  };
+  c.el.start.addEventListener('click', c.toggle);
+  c.el.reset.addEventListener('click', c.doReset);
+  const editB = q('.editbtn');
+  if(editB) editB.addEventListener('click', ()=> openCardModal('chrono', c));
+  if(c.el.viewBtn) c.el.viewBtn.addEventListener('click', ()=>{
+    const on = card.classList.toggle('dialmode');
+    c.el.viewBtn.textContent = on ? '▭ Digital' : '◷ Dial';
+    saveCards();
+  });
+  if(cfg.dial){ card.classList.add('dialmode'); if(c.el.viewBtn) c.el.viewBtn.textContent='▭ Digital'; }
+  CHRONOS.push(c);
+  renderChrono(c);
+  return c;
 }
 
-chronoStartBtn.addEventListener('click',()=>{
-  unlockAudio();
-  if(chRunning){
-    chAcc = chElapsed(); chRunning=false;
-    chronoStartBtn.textContent='Resume'; chronoStartBtn.className='btn go';
-  } else {
-    chStart = performance.now(); chRunning=true;
-    chronoStartBtn.textContent='Pause'; chronoStartBtn.className='btn pause';
-  }
-});
-chronoResetBtn.addEventListener('click',()=>{
-  chRunning=false; chStart=0; chAcc=0;
-  chronoStartBtn.textContent='Start'; chronoStartBtn.className='btn go';
-});
+function renderChrono(c){
+  const ms = c.elapsed();
+  c.el.out.innerHTML = fmtChrono(ms);
+  const totalS = Math.floor(ms/1000);
+  if(c.el.digits) c.el.digits.textContent = fmtClock3(totalS);
+  const sec = totalS%60;
+  if(sec !== c.lastSec){ lightRing(c.ticks, sec, sec); c.lastSec = sec; }
+}
 
 /* ================= TIMERS (multi-instance) =================
    The Timer is no longer a singleton. bindTimer() attaches an independent timer
@@ -1556,18 +1620,9 @@ function bindTimer(card, cfg){
     setActiveTimer(t);
   });
 
-  /* --- header actions, wired per card so they survive any deletion --- */
-  const newB  = q('.newbtn'), editB = q('.editbtn'), delB = q('.delbtn');
-  if(newB)  newB.addEventListener('click', ()=>{
-    if(gridIsFull()){
-      showToast('The grid is full: '+window._topGridShape()+' holds '+window._topGridCapacity()+
-                ' cards. Enlarge the grid in the top bar, or remove a card, before adding a timer.', true);
-      return;
-    }
-    openTimerModal(null);
-  });
-  if(editB) editB.addEventListener('click', ()=> openTimerModal(t));
-  if(delB)  delB.addEventListener('click', ()=> removeTimer(t));
+  /* --- header actions --- */
+  const editB = q('.editbtn');
+  if(editB) editB.addEventListener('click', ()=> openCardModal('timer', t));
 
   /* --- initial state --- */
   t.sound = !!cfg.sound;
@@ -1626,64 +1681,175 @@ function renderTimer(t){
   if(t.running && remain<=0 && !t.fired){ t.fired=true; if(t.sound) alarm(); }
 }
 
-/* ================= EXTRA TIMER CARDS =================
-   A new card is a clone of the original Timer card: same markup, same styling,
-   no duplicated template to keep in sync. Ids are stripped from the clone and
-   the header buttons are re-targeted. */
+/* ================= CARDS =================
+   Every card on the grid is created and destroyed at runtime from one saved
+   list. Timers and stopwatches are cloned from a pristine template, so there
+   can be several of each; the clock and the OBS Media card are single — their
+   original element is detached when closed and put back when re-added, which
+   keeps their wiring (and the OBS WebSocket) intact. */
 
-/* Pristine copy of the Timer card, taken before anything is wired: it is the
-   source for every new card, and it survives the deletion of the first timer. */
-const TIMER_TPL = document.getElementById('timerCard').cloneNode(true);
+const grid       = document.querySelector('.grid');
+const extraGrid  = grid;                     // kept: older code refers to it
+const CARDS_KEY  = 'topCards';
+const TCOLORS    = ['#19e36b','#00c2ff','#c060ff','#ffb000','#ff2a1f','#ff5fa8','#7cf03d','#f5f5fa'];
+let xtSeq = 0, xtBooted = false;
 
-const XT_KEY = 'topExtraTimers';
-/* Read the saved list once, before any timer is built: binding the main timer
-   already triggers a save, which would otherwise wipe the stored list. */
-const XT_SAVED = (()=>{ try{ return JSON.parse(LS.get(XT_KEY)||'[]'); }catch(e){ return []; } })();
-let xtBooted = false;
-const TCOLORS = ['#19e36b','#00c2ff','#c060ff','#ffb000','#ff2a1f','#ff5fa8','#7cf03d','#f5f5fa'];
-const extraGrid = document.querySelector('.grid');   // every card shares one grid
-let xtSeq = 0;
+/* Pristine templates and singleton elements, captured before anything is wired */
+const CARD_TPL = {};
+const SINGLE   = {};
+['timer','chrono'].forEach(t=>{
+  const el = grid.querySelector('.card[data-type="'+t+'"]');
+  if(el) CARD_TPL[t] = el.cloneNode(true);
+});
+['clock','media','timer','chrono'].forEach(t=>{
+  SINGLE[t] = grid.querySelector('.card[data-type="'+t+'"]');
+});
 
-function saveTimers(){
-  if(!xtBooted) return;           // no writes until the saved list is restored
-  /* Serialise in on-screen order so drag & drop reordering is remembered */
-  const ordered = Array.from(extraGrid.children)
-    .map(el => TIMERS.find(t => t.card === el))
-    .filter(Boolean);
-  const out = ordered.map(t=>({
-    id:t.id, name:t.name, color:t.color, sound:t.sound,
-    dial:t.card.classList.contains('dialmode'),
-    dur: t.running ? t.total : (t.total || t.inputMs()),
-    main: t.card.id === 'timerCard'
-  }));
-  try{ LS.set(XT_KEY, JSON.stringify(out)); }catch(e){}
+const CARD_KINDS = [
+  {type:'timer',  label:'Timer',               dot:'#19e36b',
+   sub:'Countdown with presets, overtime and voice cues.'},
+  {type:'chrono', label:'Stopwatch',           dot:'#f5f5fa',
+   sub:'Counts up from zero. Start, pause, reset.'},
+  {type:'media',  label:'OBS Media Countdown', dot:'#c060ff', unique:true,
+   sub:'Counts down whatever media OBS is playing.'},
+  {type:'clock',  label:'Computer time',       dot:'#ff2a1f', unique:true,
+   sub:'Reference clock with the date.'}
+];
+const isUnique = type => CARD_KINDS.some(k=>k.type===type && k.unique);
+
+/* ---- saved list ---- */
+const SAVED_CARDS = (()=>{
+  try{
+    const v = JSON.parse(LS.get(CARDS_KEY)||'null');
+    if(Array.isArray(v) && v.length) return v;
+  }catch(e){}
+  /* migrate a v2.5 layout: the four built-ins plus whatever timers were saved */
+  let old=[];
+  try{ old = JSON.parse(LS.get('topExtraTimers')||'[]'); }catch(e){}
+  if(Array.isArray(old) && old.length){
+    return [{type:'clock'}].concat(
+      old.map(c=>({type:'timer', id:c.id, name:c.name, color:c.color,
+                   dur:c.dur, sound:c.sound, dial:c.dial})),
+      [{type:'chrono'},{type:'media'}]);
+  }
+  return null;
+})();
+const DEFAULT_CARDS = [{type:'clock'},{type:'timer'},{type:'chrono'},{type:'media'}];
+
+function instOf(card){
+  return TIMERS.find(t=>t.card===card) || CHRONOS.find(c=>c.card===card) || null;
 }
+function saveCards(){
+  if(!xtBooted) return;
+  const out = Array.from(grid.children).filter(el=>el.classList.contains('card')).map(el=>{
+    const type = cardType(el), inst = instOf(el);
+    const o = {type};
+    if(inst){
+      o.id=inst.id; o.name=inst.name; o.color=inst.color;
+      o.sound=!!inst.sound; o.dial=el.classList.contains('dialmode');
+      if(type==='timer') o.dur = inst.running ? inst.total : (inst.total || inst.inputMs());
+    }
+    return o;
+  });
+  LS.set(CARDS_KEY, JSON.stringify(out));
+}
+/* older call sites */
+function saveTimers(){ saveCards(); }
 
-function makeTimerCard(cfg){
-  const card  = TIMER_TPL.cloneNode(true);
-  const cardId = 'tcard_'+cfg.id;
+/* ---- creating a card ---- */
+function prepareClone(card, cfg){
+  const cardId = 'card_'+cfg.id;
   card.id = cardId;
-  card.dataset.tid = cfg.id;
-  card.classList.remove('t-active','collapsed','dialmode');
+  card.dataset.cid = cfg.id;
+  card.classList.remove('t-active','maximized','solo-on','dialmode','c-compact','c-tight','c-mini');
   card.removeAttribute('style');
-  // strip every inherited id from the clone
   card.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
   /* cloneNode copies attributes but not listeners: clear the "already wired"
      markers, otherwise wireCard() would skip this card's own controls. */
   card.querySelectorAll('[data-wired]').forEach(el=> delete el.dataset.wired);
   card.querySelectorAll('[data-drag-wired]').forEach(el=> delete el.dataset.dragWired);
-  // re-target the header buttons at this card
-  card.querySelectorAll('.hidebtn,.solobtn').forEach(b=>{ b.dataset.target = cardId; });
-  card.querySelectorAll('.hidebtn').forEach(b=> b.textContent='▾ HIDE');
-  card.querySelectorAll('.solobtn').forEach(b=> b.textContent='◱ SOLO');
-  refreshObsUrls(card, cfg.name, cfg.color, cfg.dur);
-  // remove the keyboard hint block: shortcuts follow the selected timer
-  const hint = card.querySelector('.hint');
-  if(hint) hint.remove();
-  extraGrid.appendChild(card);
-  wireCard(card);
-  return bindTimer(card, {...cfg, extra:true});
+  return card;
 }
+
+function makeCard(type, cfg){
+  cfg = cfg || {};
+  if(!cfg.id) cfg.id = type[0]+(++xtSeq)+'_'+Date.now().toString(36);
+
+  if(type==='clock' || type==='media'){
+    const el = SINGLE[type];
+    if(!el || el.parentNode===grid) return null;      // already there
+    grid.appendChild(el);
+    wireCard(el);
+    if(window._topApplyGrid) window._topApplyGrid();
+    return el;
+  }
+
+  /* first instance reuses the element already in the page, the rest are clones */
+  let card;
+  if(SINGLE[type] && SINGLE[type].parentNode !== grid && !instOf(SINGLE[type])){
+    card = SINGLE[type];
+    grid.appendChild(card);
+  } else {
+    card = prepareClone(CARD_TPL[type].cloneNode(true), cfg);
+    grid.appendChild(card);
+  }
+  card.dataset.cid = cfg.id;
+  wireCard(card);
+
+  if(type==='timer'){
+    const name = cfg.name || (TIMERS.length ? 'Timer '+(TIMERS.length+1) : 'Timer');
+    const col  = cfg.color || TCOLORS[TIMERS.length % TCOLORS.length];
+    const t = bindTimer(card, {id:cfg.id, name, color:col, dur:cfg.dur,
+                               sound:cfg.sound!==undefined?cfg.sound:(TIMERS.length===0),
+                               dial:cfg.dial, extra:true});
+    refreshObsUrls(card, name, col, t.total);
+    if(!activeTimer) setActiveTimer(t);
+    return t.card;
+  }
+  const name = cfg.name || (CHRONOS.length ? 'Stopwatch '+(CHRONOS.length+1) : 'Stopwatch');
+  const col  = cfg.color || '#f5f5fa';
+  bindChrono(card, {id:cfg.id, name, color:col, dial:cfg.dial});
+  return card;
+}
+
+/* ---- closing a card ---- */
+function closeCard(card){
+  const type = cardType(card);
+  const lbl  = card.querySelector('.t-name,.c-name');
+  const kind = CARD_KINDS.find(k=>k.type===type);
+  const name = lbl ? lbl.textContent : (kind ? kind.label : 'this card');
+  if(!confirm('Close “'+name+'” ?\n\nYou can add it again from NEW CARD.')) return;
+  if(isMaximized(card)) setMaximized(null);
+  const ti = TIMERS.findIndex(t=>t.card===card);
+  if(ti>=0){
+    if(activeTimer===TIMERS[ti]) setActiveTimer(null);
+    TIMERS.splice(ti,1);
+  }
+  const ci = CHRONOS.findIndex(c=>c.card===card);
+  if(ci>=0) CHRONOS.splice(ci,1);
+  card.remove();                       // singletons keep their listeners for later
+  if(!activeTimer && TIMERS.length) setActiveTimer(TIMERS[0]);
+  saveCards();
+  refreshNewCardBtn();
+  if(window._topFitGrid)   window._topFitGrid();
+  if(window._topApplyGrid) window._topApplyGrid();
+}
+
+/* ---- the grid has a fixed number of cells ---- */
+function gridIsFull(){
+  if(!window._topGridCapacity) return false;
+  return grid.querySelectorAll('.card').length >= window._topGridCapacity();
+}
+function refreshNewCardBtn(){
+  const b = document.getElementById('newCardBtn');
+  if(!b) return;
+  const full = gridIsFull();
+  b.classList.toggle('full', full);
+  b.title = full ? 'Grid full — enlarge the grid or close a card first'
+                 : 'Add a card to the grid';
+}
+window._topRefreshNewBtn = refreshNewCardBtn;
+function refreshNewBtn(){ refreshNewCardBtn(); }
 
 /* An OBS Browser Source is a separate browser and cannot read this window's
    saved timers, so the name and colour travel in the URL. */
@@ -1699,49 +1865,6 @@ function refreshObsUrls(card, name, color, durMs){
   });
 }
 
-/* The grid holds cols x rows cards: no room means no new timer. */
-function gridIsFull(){
-  if(!window._topGridCapacity) return false;
-  return extraGrid.querySelectorAll('.card').length >= window._topGridCapacity();
-}
-function refreshNewBtn(){
-  const full = gridIsFull();
-  document.querySelectorAll('.newbtn').forEach(b=>{
-    b.classList.toggle('full', full);
-    b.title = full
-      ? 'Grid full — enlarge the grid or remove a card to add a timer'
-      : 'Create another independent timer';
-  });
-}
-window._topRefreshNewBtn = refreshNewBtn;
-
-function removeTimer(t){
-  if(TIMERS.length<=1){
-    showToast('This is the last timer — TOP! always keeps one. Rename it or change its duration instead.');
-    return;
-  }
-  if(!confirm('Remove the timer "'+t.name+'" ?')) return;
-  const i = TIMERS.indexOf(t);
-  if(i>=0) TIMERS.splice(i,1);
-  if(t.card.classList.contains('solo-on')) setSolo(null);
-
-  /* The id "timerCard" is a role, not a fixed card: F2, ?tool=timer and a good
-     deal of CSS target it, so hand it over before removing this card. */
-  if(t.card.id === 'timerCard'){
-    const next = TIMERS[0];
-    t.card.removeAttribute('id');
-    if(next){
-      next.card.id = 'timerCard';
-      next.card.querySelectorAll('.hidebtn,.solobtn').forEach(b=> b.dataset.target = 'timerCard');
-    }
-  }
-  t.card.remove();
-  if(activeTimer===t) setActiveTimer(TIMERS[0]);
-  saveTimers();
-  if(window._topSaveCardOrder) window._topSaveCardOrder();
-  refreshNewBtn();
-}
-
 /* Wire the header controls of a dynamically created card (the static ones are
    wired once at startup). Drag & drop is shared with the built-in cards. */
 function wireCard(card){
@@ -1750,16 +1873,13 @@ function wireCard(card){
   /* data-wired marks a control as already bound: the global initialisers that
      run later in the script skip it, otherwise a restored card would end up
      with two click handlers and every toggle would fire twice. */
-  card.querySelectorAll('.solobtn:not([data-wired])').forEach(b=>{
+  card.querySelectorAll('.maxbtn:not([data-wired])').forEach(b=>{
     b.dataset.wired='1';
-    b.addEventListener('click', ()=> setSolo(b.dataset.target));
+    b.addEventListener('click', ()=> setMaximized(card));
   });
-  card.querySelectorAll('.hidebtn:not([data-wired])').forEach(b=>{
+  card.querySelectorAll('.closebtn:not([data-wired])').forEach(b=>{
     b.dataset.wired='1';
-    b.addEventListener('click', ()=>{
-      const c = card.classList.toggle('collapsed');
-      b.textContent = c ? '▸ SHOW' : '▾ HIDE';
-    });
+    b.addEventListener('click', ()=> closeCard(card));
   });
   card.querySelectorAll('.obsbtn:not([data-wired])').forEach(btn=>{
     btn.dataset.wired='1';
@@ -1802,20 +1922,30 @@ function pickColor(c){
   tmSwatches.querySelectorAll('.tm-sw').forEach(b=> b.classList.toggle('sel', b.dataset.c===c));
 }
 
-function openTimerModal(t){
-  tmEditing = t || null;
-  document.getElementById('tmTitle').textContent = t ? 'Edit timer' : 'New timer';
-  document.getElementById('tmOk').textContent    = t ? 'Save' : 'Create';
+let tmKind = 'timer';
+function openCardModal(kind, inst){
+  tmKind = kind; tmEditing = inst || null;
+  const isTimer = kind==='timer';
+  const durRow = document.getElementById('tmDurField');
+  if(durRow) durRow.style.display = isTimer ? '' : 'none';
+  document.getElementById('tmTitle').textContent =
+    (inst ? 'Edit ' : 'New ') + (isTimer ? 'timer' : 'stopwatch');
+  document.getElementById('tmOk').textContent = inst ? 'Save' : 'Create';
   tmErr.classList.remove('show');
-  if(t){
-    tmName.value = t.name;
-    pickColor(t.color);
-    const s = Math.floor((t.running ? t.total : t.inputMs())/1000);
-    tmH.value=Math.floor(s/3600); tmM.value=Math.floor(s/60)%60; tmS.value=s%60;
-  } else {
-    tmName.value = 'Timer '+(TIMERS.length+1);
-    pickColor(TCOLORS[(TIMERS.length) % TCOLORS.length]);
+  if(inst){
+    tmName.value = inst.name;
+    pickColor(inst.color);
+    if(isTimer){
+      const s = Math.floor((inst.running ? inst.total : inst.inputMs())/1000);
+      tmH.value=Math.floor(s/3600); tmM.value=Math.floor(s/60)%60; tmS.value=s%60;
+    }
+  } else if(isTimer){
+    tmName.value = TIMERS.length ? 'Timer '+(TIMERS.length+1) : 'Timer';
+    pickColor(TCOLORS[TIMERS.length % TCOLORS.length]);
     tmH.value=0; tmM.value=5; tmS.value=0;
+  } else {
+    tmName.value = CHRONOS.length ? 'Stopwatch '+(CHRONOS.length+1) : 'Stopwatch';
+    pickColor('#f5f5fa');
   }
   timerModal.classList.add('open');
   setTimeout(()=>{ tmName.focus(); tmName.select(); }, 30);
@@ -1829,166 +1959,228 @@ tmName.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault();
 
 document.getElementById('tmOk').addEventListener('click', ()=>{
   const name = (tmName.value||'').trim();
-  if(!name){ tmErr.textContent='Give the timer a name.'; tmErr.classList.add('show'); tmName.focus(); return; }
+  if(!name){ tmErr.textContent='Give it a name.'; tmErr.classList.add('show'); tmName.focus(); return; }
   const dur = ((Math.max(0,parseInt(tmH.value)||0)*3600)
              + (Math.max(0,parseInt(tmM.value)||0)*60)
              + (Math.max(0,parseInt(tmS.value)||0))) * 1000;
   if(tmEditing){
-    const t = tmEditing;
-    t.name = name; t.color = tmColor;
-    t.el.name.textContent = name;
-    t.card.style.setProperty('--tcol', tmColor);
-    refreshObsUrls(t.card, name, tmColor, dur);
-    if(!t.running) t.setMs(dur);
-    saveTimers();
+    const inst = tmEditing;
+    inst.name = name; inst.color = tmColor;
+    if(inst.el.name) inst.el.name.textContent = name;
+    inst.card.style.setProperty('--tcol', tmColor);
+    if(tmKind==='timer'){
+      refreshObsUrls(inst.card, name, tmColor, dur);
+      if(!inst.running) inst.setMs(dur);
+    }
+    saveCards();
   } else {
     if(gridIsFull()){
-      showToast('The grid is full: '+window._topGridShape()+' holds '+window._topGridCapacity()+
-                ' cards. Enlarge the grid in the top bar, or remove a card.', true);
       closeTimerModal();
+      showToast('The grid is full: '+window._topGridShape()+' holds '+window._topGridCapacity()+
+                ' cards. Enlarge the grid in the top bar, or close a card first.', true);
       return;
     }
-    const t = makeTimerCard({ id:'t'+(++xtSeq)+'_'+Date.now().toString(36), name, color:tmColor, dur, sound:false });
-    setActiveTimer(t);
-    saveTimers();
-    refreshNewBtn();
-    t.card.scrollIntoView({behavior:'smooth', block:'nearest'});
+    const card = makeCard(tmKind, {name, color:tmColor, dur, sound:false});
+    saveCards();
+    refreshNewCardBtn();
+    if(card) card.scrollIntoView({behavior:'smooth', block:'nearest'});
   }
   closeTimerModal();
 });
 
-/* ---- Boot ---- */
 
-(function restoreExtraTimers(){
-  /* An OBS Browser Source (?tool=xtimer) builds a single timer from the URL
-     instead, because it is a different browser with its own storage. */
-  const p = new URLSearchParams(location.search);
-  if(p.get('tool')==='xtimer'){
-    const t = makeTimerCard({
-      id:'obs', name:p.get('name')||'Timer',
-      color:p.get('color')||TCOLORS[1],
-      dur:(Math.max(0,parseInt(p.get('dur'))||0))*1000, sound:false
+/* ================= NEW CARD PICKER ================= */
+const cardPicker = document.getElementById('cardPicker');
+const cpList = document.getElementById('cpList');
+const cpErr  = document.getElementById('cpErr');
+let cpChoice = null;
+
+function buildPicker(){
+  cpChoice = null;
+  cpErr.classList.remove('show');
+  cpList.innerHTML = '';
+  CARD_KINDS.forEach(k=>{
+    /* the clock and the OBS card only make sense once: offer them when gone */
+    if(k.unique && firstCardOfType(k.type)) return;
+    const b = document.createElement('button');
+    b.className = 'cp-opt'; b.dataset.type = k.type;
+    b.innerHTML = '<span class="cp-dot" style="background:'+k.dot+';box-shadow:0 0 8px '+k.dot+'"></span>'
+                + '<span>'+k.label+'<span class="cp-sub">'+k.sub+'</span></span>';
+    b.addEventListener('click', ()=>{
+      cpChoice = k.type;
+      cpList.querySelectorAll('.cp-opt').forEach(o=>o.classList.toggle('sel', o===b));
     });
-    t.card.classList.add('solo-on');
-    document.body.classList.add('tool-xtimer');
-    setActiveTimer(t);
-    return;                        // xtBooted stays false: an OBS source never saves
+    cpList.appendChild(b);
+  });
+  const first = cpList.querySelector('.cp-opt');
+  if(first){ first.click(); }
+}
+function openPicker(){
+  if(gridIsFull()){
+    showToast('The grid is full: '+window._topGridShape()+' holds '+window._topGridCapacity()+
+              ' cards. Enlarge the grid in the top bar, or close a card first.', true);
+    return;
   }
-  /* The first saved timer reuses the card already in the page (it keeps the
-     id "timerCard"); the others are cloned from the template. */
-  const saved = Array.isArray(XT_SAVED)
-    ? XT_SAVED.filter(c=> c && c.id && c.name)
-    : [];
-  if(!saved.length){
-    const t = bindTimer(timerCard, {
-      id:'main', name:'Timer', color:'#19e36b', extra:true,
-      sound: LS.get('topTimerSound') !== '0'
-    });
-    timerCard.dataset.tid = 'main';
-    refreshObsUrls(timerCard, t.name, t.color, t.total);
-    setActiveTimer(t);
+  buildPicker();
+  cardPicker.classList.add('open');
+}
+function closePicker(){ cardPicker.classList.remove('open'); }
+
+document.getElementById('newCardBtn').addEventListener('click', openPicker);
+document.getElementById('cpClose').addEventListener('click', closePicker);
+document.getElementById('cpCancel').addEventListener('click', closePicker);
+cardPicker.addEventListener('click', e=>{ if(e.target===cardPicker) closePicker(); });
+document.getElementById('cpOk').addEventListener('click', ()=>{
+  if(!cpChoice){ cpErr.textContent='Pick a card to add.'; cpErr.classList.add('show'); return; }
+  if(gridIsFull()){
+    closePicker();
+    showToast('The grid is full: '+window._topGridShape()+' holds '+window._topGridCapacity()+
+              ' cards. Enlarge the grid in the top bar, or close a card first.', true);
+    return;
+  }
+  const type = cpChoice;
+  closePicker();
+  if(type==='timer' || type==='chrono'){
+    openCardModal(type, null);          // ask for a name, a colour (and a duration)
   } else {
-    const firstIdx = Math.max(0, saved.findIndex(c=>c.main));
-    saved.forEach((c,i)=>{
-      xtSeq++;
-      if(i===firstIdx){
-        const t = bindTimer(timerCard, { id:c.id, name:c.name, color:c.color||'#19e36b',
-                                         dur:c.dur||0, sound:!!c.sound, dial:!!c.dial, extra:true });
-        timerCard.dataset.tid = c.id;
-        t.el.name.textContent = c.name;
-        timerCard.style.setProperty('--tcol', t.color);
-        refreshObsUrls(timerCard, c.name, t.color, c.dur);
-        if(c.dial){ timerCard.classList.add('dialmode'); if(t.el.viewBtn) t.el.viewBtn.textContent='▭ Digital'; }
-      } else {
-        makeTimerCard({ id:c.id, name:c.name, color:c.color||TCOLORS[1],
-                        dur:c.dur||0, sound:!!c.sound, dial:!!c.dial });
-      }
-    });
-    setActiveTimer(TIMERS[0]);
+    makeCard(type);
+    saveCards();
+    refreshNewCardBtn();
   }
-  xtBooted = true;
-  saveTimers();                 // make sure the list exists from the first run
-  if(window._topApplyCardOrder) window._topApplyCardOrder();
-  if(window._topApplyGrid)      window._topApplyGrid();
-  refreshNewBtn();
-})();
-
-/* ================= VIEW TOGGLE (digital / Gorgy dial) ================= */
-function setupToggle(btnId, card){
-  const btn=document.getElementById(btnId);
-  btn.addEventListener('click',()=>{
-    const on=card.classList.toggle('dialmode');
-    btn.textContent = on ? '▭ Digital' : '◷ Dial';
-    // If fullscreen active, force dial-sm size
-    if(on && document.fullscreenElement === card){
-      const dialSm = card.querySelector('.dial-view .dial-sm');
-      if(dialSm){
-        const size = Math.round(Math.min(window.innerWidth, window.innerHeight) * 0.72);
-        dialSm.style.width    = size + 'px';
-        dialSm.style.maxWidth = size + 'px';
-        dialSm.style.height   = size + 'px';
-      }
-    }
-  });
-}
-setupToggle('chronoView', chronoCard);
-
-/* ================= SOUND (Web Audio, offline) ================= */
-let audioCtx=null;
-function unlockAudio(){
-  if(!audioCtx){ try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
-  if(audioCtx && audioCtx.state==='suspended') audioCtx.resume();
-}
-function beep(freq,start,dur){
-  if(!audioCtx)return;
-  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-  o.type='square'; o.frequency.value=freq;
-  o.connect(g); g.connect(audioCtx.destination);
-  const t=audioCtx.currentTime+start;
-  g.gain.setValueAtTime(0.0001,t);
-  g.gain.exponentialRampToValueAtTime(0.25,t+0.01);
-  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
-  o.start(t); o.stop(t+dur+0.02);
-}
-function alarm(){ unlockAudio(); beep(880,0,0.18); beep(1320,0.22,0.18); beep(880,0.44,0.18); beep(1320,0.66,0.3); }
-
-
-
-/* ================= PER-CARD FULLSCREEN ================= */
-const SOLO_MAP = {clockCard:'tool-clock', timerCard:'tool-timer', chronoCard:'tool-chrono', mediaCard:'tool-media'};
-function isSoloOn(cardId){
-  const base = SOLO_MAP[cardId];
-  if(base) return document.body.classList.contains(base);
-  const c = document.getElementById(cardId);
-  return !!(c && c.classList.contains('solo-on'));
-}
-function setSolo(cardId){
-  const card   = cardId ? document.getElementById(cardId) : null;
-  const base   = cardId ? SOLO_MAP[cardId] : null;
-  /* Extra timer cards are created at runtime, so they share a single body
-     class (tool-xtimer) and mark themselves with .solo-on. */
-  const extra  = !base && !!card;
-  const cls    = base || (extra ? 'tool-xtimer' : null);
-  const active = cardId ? isSoloOn(cardId) : false;
-  Object.values(SOLO_MAP).forEach(c=>document.body.classList.remove(c));
-  document.body.classList.remove('tool-xtimer');
-  document.querySelectorAll('.solo-on').forEach(c=>c.classList.remove('solo-on'));
-  if(cls && !active){
-    document.body.classList.add(cls);
-    if(extra) card.classList.add('solo-on');
-  }
-  document.querySelectorAll('.solobtn').forEach(b=>{
-    b.textContent = isSoloOn(b.dataset.target) ? '✕ EXIT' : '◱ SOLO';
-  });
-  if(window._topRetagCards) setTimeout(window._topRetagCards, 30);
-}
-document.querySelectorAll('.solobtn:not([data-wired])').forEach(btn=>{
-  btn.dataset.wired='1';
-  btn.addEventListener('click', ()=> setSolo(btn.dataset.target));
 });
 
-/* The Timer sound switch is wired per instance in bindTimer(). */
+/* ===== ADAPTIVE CARD CONTENT =====
+   A card shorter than its natural content gets .c-compact / .c-tight, and the
+   stylesheet shrinks what is inside instead of letting it fall out of view. */
+(function(){
+  const COMPACT = 500, TIGHT = 370, MINI = 285;
+  function tag(card){
+    /* solo and OBS views give the cards the whole page: no shrinking there */
+    if(document.body.className.match(/tool-|obs-mode/)){
+      card.classList.remove('c-compact','c-tight','c-mini'); return;
+    }
+    const h = card.clientHeight;
+    if(!h) return;
+    card.classList.toggle('c-compact', h < COMPACT);
+    card.classList.toggle('c-tight',   h < TIGHT);
+    card.classList.toggle('c-mini',    h < MINI);
+    card.style.setProperty('--dialmax', Math.max(80, Math.round(h - 210)) + 'px');
+    const head = card.querySelector('.cardhead');
+    if(head) card.style.setProperty('--headh', Math.round(head.getBoundingClientRect().height) + 'px');
+  }
+  const ro = window.ResizeObserver ? new ResizeObserver(es=> es.forEach(e=> tag(e.target))) : null;
+  window._topObserveCard = card=>{ if(ro) ro.observe(card); tag(card); };
+  window._topRetagCards  = ()=> document.querySelectorAll('.card').forEach(tag);
+  document.querySelectorAll('.grid > .card').forEach(c=> window._topObserveCard(c));
+  document.addEventListener('fullscreenchange', ()=> setTimeout(window._topRetagCards, 80));
+})();
 
+/* ===== CARD ORDER — drag & drop, one rule for every card =====
+   Grab a card by its title and drop it on another to swap the two. The order is
+   simply the DOM order inside the grid, so it behaves the same for the four
+   built-in cards and for every timer added later. */
+(function(){
+  const grid = document.querySelector('.grid');
+
+  const saveOrder = () => saveCards();   // the card list is stored in on-screen order
+  window._topSaveCardOrder = saveOrder;
+
+  let dragged = null;
+  function swapNodes(a,b){
+    const mark = document.createComment('');
+    a.parentNode.insertBefore(mark, a);
+    b.parentNode.insertBefore(a, b);
+    mark.parentNode.insertBefore(b, mark);
+    mark.remove();
+  }
+  window._topWireDrag = function(card){
+    const handle = card.querySelector('.cardhead .draghandle');
+    if(!handle || handle.dataset.dragWired) return;
+    handle.dataset.dragWired = '1';
+    handle.setAttribute('draggable','true');
+    handle.addEventListener('dragstart', e=>{
+      dragged = card; card.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.setData('text/plain', card.id);
+    });
+    handle.addEventListener('dragend', ()=>{
+      card.classList.remove('dragging'); dragged=null;
+      grid.querySelectorAll('.drop-target').forEach(c=>c.classList.remove('drop-target'));
+    });
+    card.addEventListener('dragover', e=>{
+      if(dragged && dragged!==card){ e.preventDefault(); card.classList.add('drop-target'); }
+    });
+    card.addEventListener('dragleave', ()=> card.classList.remove('drop-target'));
+    card.addEventListener('drop', e=>{
+      e.preventDefault(); card.classList.remove('drop-target');
+      if(!dragged || dragged===card) return;
+      swapNodes(dragged, card);
+      saveOrder();
+      if(window._topApplyGrid) window._topApplyGrid();
+    });
+  };
+  Array.from(grid.children).forEach(c=> window._topWireDrag(c));
+})();
+
+/* ===== MASTER VOLUME ===== */
+(function(){
+  const slider=document.getElementById('volSlider');
+  const icon=document.getElementById('volIcon');
+  const SPK='<path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/>';
+  const IC={
+    x:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+SPK+'<line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></svg>',
+    low:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+SPK+'<path d="M16 9a5 5 0 0 1 0 6"/></svg>',
+    hi:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+SPK+'<path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></svg>'
+  };
+  let lastNonZero=100;
+  function apply(){
+    const v=slider.value/100;
+    document.querySelectorAll('audio').forEach(a=>{a.volume=v;});
+    icon.innerHTML = v===0?IC.x : v<0.5?IC.low : IC.hi;
+    slider.style.background=`linear-gradient(to right,var(--green) 0%,var(--green) ${v*100}%,#2a2a32 ${v*100}%,#2a2a32 100%)`;
+    if(v>0) lastNonZero=slider.value;
+  }
+  slider.addEventListener('input',()=>{ apply(); LS.set('topMasterVol',slider.value); });
+  icon.addEventListener('click',()=>{ /* mute toggle */
+    slider.value = +slider.value===0 ? lastNonZero : 0;
+    apply(); LS.set('topMasterVol',slider.value);
+  });
+  const saved=LS.get('topMasterVol');
+  if(saved!==null) slider.value=saved;
+  apply();
+})();
+
+
+/* ================= MAXIMIZE ONE CARD =================
+   Cards are created and closed at runtime, so nothing here may depend on a
+   fixed element id: exactly one card carries .solo-on, and the body carries
+   tool-<type> so the type-specific sizing rules still apply. */
+const TYPE_CLASS = {clock:'tool-clock', timer:'tool-timer', chrono:'tool-chrono', media:'tool-media'};
+const ICO_MAX = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>';
+const ICO_MIN = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>';
+function cardType(card){ return (card && card.dataset.type) || ''; }
+function isMaximized(card){ return !!(card && card.classList.contains('solo-on')); }
+function firstCardOfType(type){ return document.querySelector('.grid > .card[data-type="'+type+'"]'); }
+function refreshMaxIcons(){
+  document.querySelectorAll('.maxbtn').forEach(b=>{
+    const on = isMaximized(b.closest('.card'));
+    b.innerHTML = on ? ICO_MIN : ICO_MAX;
+    b.title = on ? 'Back to the grid' : 'Maximize this card';
+  });
+}
+function setMaximized(card){
+  const wasOn = isMaximized(card);
+  Object.values(TYPE_CLASS).forEach(c=>document.body.classList.remove(c));
+  document.querySelectorAll('.solo-on').forEach(c=>c.classList.remove('solo-on','maximized'));
+  if(card && !wasOn){
+    document.body.classList.add(TYPE_CLASS[cardType(card)] || 'tool-timer');
+    card.classList.add('solo-on','maximized');
+  }
+  refreshMaxIcons();
+  if(window._topRetagCards) setTimeout(window._topRetagCards, 30);
+  if(window._topApplyGrid)  setTimeout(window._topApplyGrid, 40);
+}
+function setSolo(){ setMaximized(null); }
 
 /* ================= OBS URL BUTTONS ================= */
 (function(){
@@ -2076,13 +2268,14 @@ document.addEventListener('keydown',e=>{
       return;
     }
     // Stopwatch
-    if(e.key==='c'||e.key==='C'){ chronoStartBtn.click(); return; }
-    if(e.key==='x'||e.key==='X'){ chronoResetBtn.click(); return; }
+    if(e.key==='c'||e.key==='C'){ if(CHRONOS[0]) CHRONOS[0].toggle(); return; }
+    if(e.key==='x'||e.key==='X'){ if(CHRONOS[0]) CHRONOS[0].doReset(); return; }
     // Solo view: F1=clock F2=timer F3=chrono F4=media  Escape=exit
-    if(e.key==='F1'){ e.preventDefault(); setSolo('clockCard'); return; }
-    if(e.key==='F2'){ e.preventDefault(); setSolo('timerCard'); return; }
-    if(e.key==='F3'){ e.preventDefault(); setSolo('chronoCard'); return; }
-    if(e.key==='F4'){ e.preventDefault(); setSolo('mediaCard'); return; }
+    /* F1–F4 maximize the first card of each kind */
+    if(e.key==='F1'){ e.preventDefault(); setMaximized(firstCardOfType('clock'));  return; }
+    if(e.key==='F2'){ e.preventDefault(); setMaximized(firstCardOfType('timer'));  return; }
+    if(e.key==='F3'){ e.preventDefault(); setMaximized(firstCardOfType('chrono')); return; }
+    if(e.key==='F4'){ e.preventDefault(); setMaximized(firstCardOfType('media'));  return; }
   }
 
   // Timer keyboard navigation (outside input, or in a timer input)
@@ -2119,32 +2312,30 @@ function fsInfoHtml(lbl, val){
 
 const mediaFsInfoEl = document.getElementById('mediaFsInfo');
 function renderFsInfo(){
-  const soloId = Object.keys(SOLO_MAP).find(id=>document.body.classList.contains(SOLO_MAP[id]));
-  if(!soloId || document.body.classList.contains('obs-mode')) return;
-  const fs = document.getElementById(soloId);
+  const fs = document.querySelector('.card.solo-on');
+  if(!fs || document.body.classList.contains('obs-mode')) return;
 
   const now   = new Date();
   const clkTxt = pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
-  const chMs  = chElapsed();
+  const chMs  = CHRONOS[0] ? CHRONOS[0].elapsed() : 0;
   const chS   = Math.floor(chMs/1000);
   const chrTxt = pad(Math.floor(chS/3600))+':'+pad(Math.floor(chS/60)%60)+':'+pad(chS%60);
   const tmrTxt = activeTimer ? fmtTimer(activeTimer.running ? activeTimer.end-performance.now() : activeTimer.remain) : '00:00';
   const sep    = '<span class="fi-sep">·</span>';
 
-  if(fs.id==='clockCard')
-    clockFsInfo.innerHTML  = fsInfoHtml('Stopwatch',chrTxt)+sep+fsInfoHtml('Timer',tmrTxt);
-  else if(fs.id==='chronoCard')
-    chronoFsInfo.innerHTML = fsInfoHtml('Clock',clkTxt)+sep+fsInfoHtml('Timer',tmrTxt);
-  else if(fs.id==='timerCard')
-    timerFsInfo.innerHTML  = fsInfoHtml('Clock',clkTxt)+sep+fsInfoHtml('Stopwatch',chrTxt);
-  else if(fs.id==='mediaCard')
-    mediaFsInfoEl.innerHTML = fsInfoHtml('Clock',clkTxt)+sep+fsInfoHtml('Timer',tmrTxt)+sep+fsInfoHtml('Stopwatch',chrTxt);
+  const info = fs.querySelector('.fs-info');
+  if(!info) return;
+  const ty = cardType(fs);
+  if(ty==='clock')       info.innerHTML = fsInfoHtml('Stopwatch',chrTxt)+sep+fsInfoHtml('Timer',tmrTxt);
+  else if(ty==='chrono') info.innerHTML = fsInfoHtml('Clock',clkTxt)+sep+fsInfoHtml('Timer',tmrTxt);
+  else if(ty==='timer')  info.innerHTML = fsInfoHtml('Clock',clkTxt)+sep+fsInfoHtml('Stopwatch',chrTxt);
+  else                   info.innerHTML = fsInfoHtml('Clock',clkTxt)+sep+fsInfoHtml('Timer',tmrTxt)+sep+fsInfoHtml('Stopwatch',chrTxt);
 }
 
 /* ================= MAIN LOOP ================= */
 function loop(){
   renderClock();
-  renderChrono();
+  for(let i=0;i<CHRONOS.length;i++) renderChrono(CHRONOS[i]);
   for(let i=0;i<TIMERS.length;i++) renderTimer(TIMERS[i]);
   renderFsInfo();
   requestAnimationFrame(loop);
@@ -2153,23 +2344,14 @@ loop();
 
 /* Apply ?dial=1 after init */
 if(window._obsStartDial){
-  const tool = new URLSearchParams(location.search).get('tool');
-  if(tool==='timer' || tool==='xtimer'){
-    const dc = tool==='xtimer' ? document.querySelector('.t-card.solo-on') : timerCard;
-    if(dc){
+  /* ?dial=1 — the maximized card is whichever the URL selected */
+  const dc = document.querySelector('.card.solo-on');
+  if(dc && (cardType(dc)==='timer' || cardType(dc)==='chrono')){
     dc.classList.add('dialmode');
-    const vb=dc.querySelector('.viewbtn'); if(vb) vb.textContent='▭ Digital';
-    const s=Math.round(Math.min(window.innerWidth,window.innerHeight)*0.92);
-    const d=dc.querySelector('.dial-view .dial-sm');
-    if(d){d.style.width=s+'px';d.style.height=s+'px';d.style.maxWidth=s+'px';}
-    }
-  }
-  if(tool==='chrono'){
-    chronoCard.classList.add('dialmode');
-    document.getElementById('chronoView').textContent='▭ Digital';
-    const s=Math.round(Math.min(window.innerWidth,window.innerHeight)*0.92);
-    const d=chronoCard.querySelector('.dial-view .dial-sm');
-    if(d){d.style.width=s+'px';d.style.height=s+'px';d.style.maxWidth=s+'px';}
+    const vb = dc.querySelector('.viewbtn'); if(vb) vb.textContent='▭ Digital';
+    const sz = Math.round(Math.min(window.innerWidth,window.innerHeight)*0.92);
+    const d  = dc.querySelector('.dial-view .dial-sm');
+    if(d){d.style.width=sz+'px';d.style.height=sz+'px';d.style.maxWidth=sz+'px';}
   }
 }
 
@@ -2177,9 +2359,9 @@ if(window._obsStartDial){
 if(document.body.classList.contains('obs-mode')){
   const _obsTool = new URLSearchParams(location.search).get('tool') || '';
   const _selMap = {
-    timer:  ['#timerCard .time-input','#timerCard .presets','#timerCard .btns'],
-    xtimer: ['.t-card.solo-on .time-input','.t-card.solo-on .presets','.t-card.solo-on .btns'],
-    chrono: ['#chronoCard .btns']
+    timer:  ['.card.solo-on .time-input','.card.solo-on .presets','.card.solo-on .btns'],
+    xtimer: ['.card.solo-on .time-input','.card.solo-on .presets','.card.solo-on .btns'],
+    chrono: ['.card.solo-on .btns']
   };
   const _sels = _selMap[_obsTool] || [];
   if(_sels.length){
@@ -2205,6 +2387,7 @@ if(document.body.classList.contains('obs-mode')){
 (function(){
   const root     = document.documentElement;
   const card     = document.getElementById('clockCard');
+  if(!card) return;
   const dialWrap = card.querySelector('.dial-wrap');
 
   function scaleClock(){
@@ -2243,6 +2426,7 @@ if(document.body.classList.contains('obs-mode')){
     }).observe(card);
   }
   // Initial call + after fullscreen + OBS recalculation
+  window._topScaleClock = scaleClock;
   scaleClock();
   document.addEventListener('fullscreenchange', () => setTimeout(scaleClock, 50));
   if(document.body.classList.contains('obs-mode')) setTimeout(scaleClock, 200);
@@ -2799,22 +2983,70 @@ function showToast(msg, isError){
    top bar; the rows always share the height of the screen. On top of that,
    every boundary between two columns or two rows carries a draggable splitter,
    so each track can be made wider or taller at its neighbour's expense.
-   Track weights are stored per grid shape: your 3×2 layout is not your 2×2. */
+   Track weights are stored per grid shape: your 3×2 layout is not your 2×2.
+   The shape itself is stored per orientation: rotating a tablet swaps to the
+   layout you set for that way round, and the GRID field follows. */
 (function(){
   const KEY    = 'topGridSize';
   const TRACKS = 'topGridTracks';
   const GAP    = 18;
-  const MIN_PX = 150;                 // a track never shrinks below this
+  /* A row never goes below the height at which the tightest card still shows
+     everything (measured: the Timer needs ~230 px once compacted). Past that
+     the page scrolls rather than cutting a card in half — which is what you
+     want on a phone anyway. */
+  const MIN_PX = 232;
   const grid   = document.querySelector('.grid');
   const cIn    = document.getElementById('gsCols');
   const rIn    = document.getElementById('gsRows');
 
-  let cfg = {cols:2, rows:2};
-  try{ const v = JSON.parse(LS.get(KEY)||'null'); if(v && v.cols && v.rows) cfg = v; }catch(e){}
+  const isPortrait = () => window.innerHeight >= window.innerWidth;
+  const orient     = () => isPortrait() ? 'portrait' : 'landscape';
+
+  /* one shape per orientation; a v2.6 value describes the landscape one and the
+     portrait shape is derived from it by transposing */
+  let shapes = {landscape:{cols:2,rows:2}, portrait:null};
+  try{
+    const v = JSON.parse(LS.get(KEY)||'null');
+    if(v && v.landscape && v.portrait) shapes = v;
+    else if(v && v.cols && v.rows) shapes = {landscape:{cols:v.cols,rows:v.rows},
+                                             portrait:{cols:v.rows,rows:v.cols}};
+  }catch(e){}
+  let cfg = null;                     // the shape currently on screen
   let store = {};
   try{ store = JSON.parse(LS.get(TRACKS)||'{}') || {}; }catch(e){}
 
   const clamp   = (v,min,max) => Math.max(min, Math.min(max, parseInt(v)||min));
+  const cardCount = () => grid.querySelectorAll('.card').length;
+
+  /* a shape must always hold every card on the grid: grow it rather than let
+     cards spill into rows nobody asked for */
+  function fitShape(sh){
+    const n = cardCount() || 1;
+    sh.cols = clamp(sh.cols,1,8); sh.rows = clamp(sh.rows,1,6);
+    while(sh.cols*sh.rows < n && sh.rows < 6) sh.rows++;
+    while(sh.cols*sh.rows < n && sh.cols < 8) sh.cols++;
+    return sh;
+  }
+  /* first time in this orientation: stack the cards in portrait, mirror the
+     other shape in landscape */
+  function defaultShape(o){
+    const n = cardCount() || 1;
+    if(o==='portrait'){
+      /* as many columns as fit at a readable width — two on a tablet held
+         upright, one on a phone — then stack the rest */
+      const cols = Math.max(1, Math.min(3, Math.floor(window.innerWidth / 340)));
+      return fitShape({cols, rows: Math.ceil(n/cols)});
+    }
+    const other = shapes.portrait;
+    return fitShape(other ? {cols:other.rows, rows:other.cols} : {cols:2, rows:2});
+  }
+  function useOrientation(){
+    const o = orient();
+    if(!shapes[o]) shapes[o] = defaultShape(o);
+    cfg = fitShape(shapes[o]);
+    cIn.value = cfg.cols; rIn.value = cfg.rows;
+  }
+  window._topFitGrid = () => { if(cfg){ fitShape(cfg); cIn.value=cfg.cols; rIn.value=cfg.rows; } };
   const shapeId = () => cfg.cols + 'x' + cfg.rows;
   const ones    = n => Array.from({length:n}, ()=>1);
 
@@ -2955,11 +3187,13 @@ function showToast(msg, isError){
     }
     if(gsBox) gsBox.classList.remove('err');
     cfg.cols = cols; cfg.rows = rows;
+    shapes[orient()] = cfg;
     cIn.value = cfg.cols; rIn.value = cfg.rows;
-    LS.set(KEY, JSON.stringify(cfg));
+    LS.set(KEY, JSON.stringify(shapes));
     buildSplitters();
     apply();
   }
+  window._topSaveGrid = () => LS.set(KEY, JSON.stringify(shapes));
   function restoreIfInvalid(){
     const cols = clamp(cIn.value,1,8), rows = clamp(rIn.value,1,6);
     if(cols*rows < grid.querySelectorAll('.card').length || cols!==cfg.cols || rows!==cfg.rows){
@@ -2968,7 +3202,7 @@ function showToast(msg, isError){
     }
   }
 
-  cIn.value = cfg.cols; rIn.value = cfg.rows;
+  useOrientation();
   [cIn,rIn].forEach(el=>{
     el.addEventListener('input',  commit);
     el.addEventListener('change', commit);
@@ -2980,11 +3214,27 @@ function showToast(msg, isError){
       restoreIfInvalid();
     }, 120));
   });
-  window.addEventListener('resize', apply);
+  /* Rotating a tablet swaps to the shape saved for that orientation. iOS
+     reports stale dimensions for a moment after a rotation, hence the second
+     pass. */
+  let lastOrient = orient();
+  function onViewportChange(){
+    const o = orient();
+    if(o !== lastOrient){
+      lastOrient = o;
+      useOrientation();
+      LS.set(KEY, JSON.stringify(shapes));
+      buildSplitters();
+    }
+    apply();
+  }
+  window.addEventListener('resize', onViewportChange);
+  window.addEventListener('orientationchange', ()=>{ setTimeout(onViewportChange, 60); setTimeout(onViewportChange, 350); });
   document.addEventListener('fullscreenchange', ()=> setTimeout(apply, 60));
   window._topApplyGrid    = apply;
   window._topGridCapacity = () => cfg.cols * cfg.rows;
   window._topGridShape    = () => cfg.cols + ' × ' + cfg.rows;
+  window._topGridOrient   = orient;
   window._topResetTracks  = () => { store[shapeId()] = {cols:ones(cfg.cols), rows:ones(cfg.rows)}; saveWeights(); apply(); };
 
   buildSplitters();
@@ -2992,144 +3242,73 @@ function showToast(msg, isError){
   setTimeout(apply, 80);          // once fonts and dial sizing have settled
 })();
 
-/* ===== ADAPTIVE CARD CONTENT =====
-   A card shorter than its natural content gets .c-compact / .c-tight, and the
-   stylesheet shrinks what is inside instead of letting it fall out of view. */
-(function(){
-  const COMPACT = 500, TIGHT = 370, MINI = 285;
-  function tag(card){
-    /* solo and OBS views give the cards the whole page: no shrinking there */
-    if(document.body.className.match(/tool-|obs-mode/)){
-      card.classList.remove('c-compact','c-tight','c-mini'); return;
-    }
-    const h = card.clientHeight;
-    if(!h) return;
-    card.classList.toggle('c-compact', h < COMPACT);
-    card.classList.toggle('c-tight',   h < TIGHT);
-    card.classList.toggle('c-mini',    h < MINI);
-    card.style.setProperty('--dialmax', Math.max(80, Math.round(h - 210)) + 'px');
-    const head = card.querySelector('.cardhead');
-    if(head) card.style.setProperty('--headh', Math.round(head.getBoundingClientRect().height) + 'px');
-  }
-  const ro = window.ResizeObserver ? new ResizeObserver(es=> es.forEach(e=> tag(e.target))) : null;
-  window._topObserveCard = card=>{ if(ro) ro.observe(card); tag(card); };
-  window._topRetagCards  = ()=> document.querySelectorAll('.card').forEach(tag);
-  document.querySelectorAll('.grid > .card').forEach(c=> window._topObserveCard(c));
-  document.addEventListener('fullscreenchange', ()=> setTimeout(window._topRetagCards, 80));
-})();
 
-/* ===== CARD ORDER — drag & drop, one rule for every card =====
-   Grab a card by its title and drop it on another to swap the two. The order is
-   simply the DOM order inside the grid, so it behaves the same for the four
-   built-in cards and for every timer added later. */
-(function(){
-  const KEY  = 'topCardOrder';
-  const grid = document.querySelector('.grid');
 
-  function saveOrder(){
-    const ids = Array.from(grid.children).map(c=>c.id).filter(Boolean);
-    try{ LS.set(KEY, JSON.stringify(ids)); }catch(e){}
-  }
-  window._topSaveCardOrder = saveOrder;
-  window._topApplyCardOrder = function(){
-    let saved=[];
-    try{ saved = JSON.parse(LS.get(KEY)||'[]'); }catch(e){}
-    if(!Array.isArray(saved) || !saved.length) return;
-    saved.forEach(id=>{
-      const el = document.getElementById(id);
-      if(el && el.parentNode===grid) grid.appendChild(el);     // re-append in saved order
-    });
-    Array.from(grid.children).forEach(c=>{                     // unknown cards go last
-      if(!saved.includes(c.id)) grid.appendChild(c);
-    });
-  };
+/* ---- Boot: build the layout from the saved card list ---- */
+(function buildLayout(){
+  const p = new URLSearchParams(location.search);
 
-  let dragged = null;
-  function swapNodes(a,b){
-    const mark = document.createComment('');
-    a.parentNode.insertBefore(mark, a);
-    b.parentNode.insertBefore(a, b);
-    mark.parentNode.insertBefore(b, mark);
-    mark.remove();
+  /* An OBS Browser Source for an extra timer is a separate browser with its own
+     storage, so the card is described entirely by the URL. */
+  if(p.get('tool')==='xtimer'){
+    Object.values(SINGLE).forEach(el=>{ if(el) el.remove(); });
+    const card = makeCard('timer', {
+      id:'obs', name:p.get('name')||'Timer', color:p.get('color')||TCOLORS[1],
+      dur:(Math.max(0,parseInt(p.get('dur'))||0))*1000, sound:false, dial:false
+    });
+    if(card){ card.classList.add('solo-on'); document.body.classList.add('tool-timer'); }
+    return;                       // xtBooted stays false: an OBS source never saves
   }
-  window._topWireDrag = function(card){
-    const handle = card.querySelector('.cardhead .draghandle');
-    if(!handle || handle.dataset.dragWired) return;
-    handle.dataset.dragWired = '1';
-    handle.setAttribute('draggable','true');
-    handle.addEventListener('dragstart', e=>{
-      dragged = card; card.classList.add('dragging');
-      e.dataTransfer.effectAllowed='move';
-      e.dataTransfer.setData('text/plain', card.id);
-    });
-    handle.addEventListener('dragend', ()=>{
-      card.classList.remove('dragging'); dragged=null;
-      grid.querySelectorAll('.drop-target').forEach(c=>c.classList.remove('drop-target'));
-    });
-    card.addEventListener('dragover', e=>{
-      if(dragged && dragged!==card){ e.preventDefault(); card.classList.add('drop-target'); }
-    });
-    card.addEventListener('dragleave', ()=> card.classList.remove('drop-target'));
-    card.addEventListener('drop', e=>{
-      e.preventDefault(); card.classList.remove('drop-target');
-      if(!dragged || dragged===card) return;
-      swapNodes(dragged, card);
-      saveOrder();
-      if(window._topApplyGrid) window._topApplyGrid();
-    });
-  };
-  Array.from(grid.children).forEach(c=> window._topWireDrag(c));
-  window._topApplyCardOrder();
-})();
 
-/* ===== MASTER VOLUME ===== */
-(function(){
-  const slider=document.getElementById('volSlider');
-  const icon=document.getElementById('volIcon');
-  const SPK='<path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/>';
-  const IC={
-    x:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+SPK+'<line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></svg>',
-    low:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+SPK+'<path d="M16 9a5 5 0 0 1 0 6"/></svg>',
-    hi:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+SPK+'<path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></svg>'
-  };
-  let lastNonZero=100;
-  function apply(){
-    const v=slider.value/100;
-    document.querySelectorAll('audio').forEach(a=>{a.volume=v;});
-    icon.innerHTML = v===0?IC.x : v<0.5?IC.low : IC.hi;
-    slider.style.background=`linear-gradient(to right,var(--green) 0%,var(--green) ${v*100}%,#2a2a32 ${v*100}%,#2a2a32 100%)`;
-    if(v>0) lastNonZero=slider.value;
-  }
-  slider.addEventListener('input',()=>{ apply(); LS.set('topMasterVol',slider.value); });
-  icon.addEventListener('click',()=>{ /* mute toggle */
-    slider.value = +slider.value===0 ? lastNonZero : 0;
-    apply(); LS.set('topMasterVol',slider.value);
+  const list = (SAVED_CARDS && SAVED_CARDS.length ? SAVED_CARDS : DEFAULT_CARDS)
+    .filter(c=> c && CARD_KINDS.some(k=>k.type===c.type));
+  /* start from an empty grid so the saved order is the on-screen order */
+  Object.values(SINGLE).forEach(el=>{ if(el) el.remove(); });
+  const seen = {};
+  list.forEach(c=>{
+    if(isUnique(c.type)){ if(seen[c.type]) return; seen[c.type]=1; }
+    makeCard(c.type, {...c});
   });
-  const saved=LS.get('topMasterVol');
-  if(saved!==null) slider.value=saved;
-  apply();
+  if(!TIMERS.length && !CHRONOS.length && !grid.querySelector('.card')) makeCard('timer');
+  xtBooted = true;
+  saveCards();
+  if(window._topFitGrid) window._topFitGrid();
+
+  /* a ?tool= browser source shows that one card, full page */
+  const tool = p.get('tool');
+  const MAP = {clock:'clock', timer:'timer', chrono:'chrono', media:'media'};
+  if(tool && MAP[tool]){
+    const target = firstCardOfType(MAP[tool]);
+    if(target) target.classList.add('solo-on');
+  }
+  refreshMaxIcons();
+  refreshNewCardBtn();
+  if(window._topApplyGrid)   window._topApplyGrid();
+  if(window._topScaleClock)  window._topScaleClock();
+  if(window._topRetagCards)  window._topRetagCards();
+  const reveal = () => document.documentElement.classList.remove('booting');
+  requestAnimationFrame(()=>requestAnimationFrame(reveal));
+  setTimeout(reveal, 2000);            // never leave the page hidden
 })();
 
-/* ===== CARD COLLAPSE (HIDE) ===== */
-(function(){
-  const KEY='topCardCollapsed';
-  let state={};
-  try{ state=JSON.parse(LS.get(KEY)||'{}'); }catch(e){}
-  function render(btn,collapsed){ btn.textContent = collapsed ? '▸ SHOW' : '▾ HIDE'; }
-  document.querySelectorAll('.hidebtn:not([data-wired])').forEach(btn=>{
-    const card=document.getElementById(btn.dataset.target);
-    if(!card) return;
-    btn.dataset.wired='1';
-    if(state[btn.dataset.target]){ card.classList.add('collapsed'); }
-    render(btn, card.classList.contains('collapsed'));
-    btn.addEventListener('click',()=>{
-      const c=card.classList.toggle('collapsed');
-      state[btn.dataset.target]=c;
-      LS.set(KEY,JSON.stringify(state));
-      render(btn,c);
-    });
-  });
-})();
+/* ================= SOUND (Web Audio, offline) ================= */
+let audioCtx=null;
+function unlockAudio(){
+  if(!audioCtx){ try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+  if(audioCtx && audioCtx.state==='suspended') audioCtx.resume();
+}
+function beep(freq,start,dur){
+  if(!audioCtx)return;
+  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type='square'; o.frequency.value=freq;
+  o.connect(g); g.connect(audioCtx.destination);
+  const t=audioCtx.currentTime+start;
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(0.25,t+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.start(t); o.stop(t+dur+0.02);
+}
+function alarm(){ unlockAudio(); beep(880,0,0.18); beep(1320,0.22,0.18); beep(880,0.44,0.18); beep(1320,0.66,0.3); }
 
 </script>
 </body>

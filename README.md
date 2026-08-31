@@ -4,7 +4,7 @@
 
 Clock, stopwatch, countdown timer and OBS media countdown for live event production — designed for stage managers, event directors, and broadcast operators.
 
-![TOP! — Live Event Time Control](https://raw.githubusercontent.com/noar-justedit/top/main/screenshot200.png)
+![TOP! — Live Event Time Control](https://raw.githubusercontent.com/noar-justedit/top/main/screenshot-v2.png)
 
 **Use it now:** [noar-justedit.github.io/top](https://noar-justedit.github.io/top/)
 
@@ -14,10 +14,10 @@ Clock, stopwatch, countdown timer and OBS media countdown for live event product
 
 - **Reference clock** — Gorgy Timing-style circular dial with 60-segment second ring, date display
 - **Timers** — as many independent countdowns as you need. Each one has its own name, colour, duration, presets, sound switch and overtime. Live adjustment while running, color-coded progress ring (green → amber → red → blinking)
-- **Stopwatch** — start/pause/reset, digital and Gorgy dial view
+- **Stopwatches** — as many as you need, each with its own name and colour. Start/pause/reset, digital and Gorgy dial view
 - **OBS Media Countdown** — connects to OBS Studio via WebSocket v5 and counts down the media source currently playing (Media Source, VLC playlists, playlist plugins). Auto-detects the on-air source, ignores looping backdrops, source filter with per-scene checkboxes and Audio/Video type switches. Connection settings are remembered and reconnect automatically. Shows "STAND BY" with the current scene name when nothing is playing
 - **Sound cues** — voice announcements at 5 min, 2 min, 1 min, 30 s, 20 s, then 10 → 1 s countdown, on both Timer and OBS Media Countdown. Master volume slider in the top bar
-- **Layout you define** — type the grid shape you want (`3 × 2`, `4 × 1`, `2 × 3`…) in the top bar and the rows share the screen height. Drag & drop reordering between any two cards, per-card HIDE (collapse) and SOLO view. Everything is remembered between sessions
+- **Cards you add and remove** — `+ NEW CARD` adds a timer, a stopwatch or the OBS Media Countdown; every card has a close button and a maximize button. Type the grid shape you want (`3 × 2`, `4 × 1`…) in the top bar and the rows share the screen height. Drag & drop reordering between any two cards. Everything is remembered between sessions
 - **OBS integration** — per-tool Browser Source URLs with transparent background
 - **Stream Deck / Bitfocus Companion** — full control via keyboard shortcuts, no plugin needed
 - **Fully offline** — all assets embedded, Clock / Stopwatch / Timer work with no internet connection
@@ -43,25 +43,35 @@ Or use it directly at [noar-justedit.github.io/top](https://noar-justedit.github
 | `Tab` / `Shift`+`Tab` | Select next / previous timer |
 | `←` `→` | Navigate Hours / Min / Sec |
 | `↑` `↓` or `+` `−` | Increment / decrement active unit |
-
-Hold the on-screen `+` or `−` button to run the value up or down; it speeds up as you hold.
 | `C` | Stopwatch start / pause |
 | `X` | Stopwatch reset |
-| `F1` | Clock — solo view toggle |
-| `F2` | Timer — solo view toggle |
-| `F3` | Stopwatch — solo view toggle |
-| `F4` | OBS Media — solo view toggle |
-| `Esc` | Close the open dialog, else exit fullscreen, else exit solo view |
+| `F1` | Maximize the clock |
+| `F2` | Maximize the first timer |
+| `F3` | Maximize the first stopwatch |
+| `F4` | Maximize the OBS Media card |
+| `Esc` | Close the open dialog, else exit fullscreen, else back to the grid |
 
-Every action maps to a key — which means full **Stream Deck** or **Bitfocus Companion** control out of the box.
+Every action maps to a key — which means full **Stream Deck** or **Bitfocus Companion** control out of the box. The full list is in the **`⌨ SHORTCUTS`** dialog in the top bar.
+
+Hold the on-screen `+` or `−` button to run the value up or down; it speeds up as you hold.
 
 ---
 
-## Multiple Timers
+## Cards
 
-Click **`+ NEW`** on the Timer card, give the timer a name, a colour and a starting duration — a new card appears below the grid with its own countdown.
+TOP! opens on a 2 × 2 grid: **Clock**, **Timer**, **Stopwatch** and **OBS Media Countdown**.
 
-Timers are completely independent: starting, pausing, adjusting or resetting one never affects another. Each card has its own presets, its own SOUND switch, its own HIDE / SOLO / OBS buttons, and its own overtime.
+Click **`+ NEW CARD`** in the top bar to add one — a timer, a stopwatch, or the OBS Media Countdown if you closed it. Pick one kind at a time. Timers and stopwatches then ask for a name and a colour.
+
+Every card carries three buttons: **⬡ OBS** for its Browser Source URL, **maximize** to give it the whole page, and **close** (with a confirmation). Anything you close comes back from `+ NEW CARD` — including the clock, which is offered only when there is none on the grid.
+
+The grid holds exactly `columns × rows` cards, so adding a fifth card to a 2 × 2 means enlarging the grid first.
+
+## Multiple Timers and Stopwatches
+
+Give a timer a name, a colour and a starting duration — a new card appears with its own countdown. Stopwatches work the same way.
+
+Timers and stopwatches are completely independent: starting, pausing, adjusting or resetting one never affects another. Each timer card has its own presets, its own SOUND switch and its own overtime.
 
 New timers are added to the same grid as the other cards, side by side. **Drag a card by its title onto another to swap them** — the order is remembered.
 
@@ -69,7 +79,7 @@ New timers are added to the same grid as the other cards, side by side. **Drag a
 
 **Keyboard shortcuts follow the selected timer.** Click a card to select it: it lights up with a glow in its own colour and shows an `ARMED` badge, and `Space`, `R` and the arrow keys act on it. `Tab` cycles through the timers. With a single timer, nothing changes — it is selected by default.
 
-Use **`✎ EDIT`** to rename, recolour or re-time a timer, and **`✕`** to remove it. This includes the first timer, which is a timer like any other. TOP! always keeps at least one. Names, colours, durations and switches are remembered between sessions.
+Use **`✎ EDIT`** on a timer or a stopwatch card to rename and recolour it — and, for a timer, to change its duration. Names, colours, durations and switches are remembered between sessions.
 
 > Voice cues are off by default on a new timer. Several timers announcing at once would talk over each other, so turn SOUND on only for the timer that should speak.
 
@@ -79,7 +89,11 @@ Use **`✎ EDIT`** to rename, recolour or re-time a timer, and **`✕`** to remo
 
 Set the shape of the grid in the top bar: **`GRID  3 × 2`** means three columns and two rows.
 
-The rows share the height of the screen, so the whole surface fits without scrolling — `3 × 2` gives each row half the space under the top bar, `2 × 1` gives full-height cards. Fewer rows means taller cards. If a card needs more room than its row, it scrolls inside itself rather than pushing the page past the screen.
+**Portrait and landscape each keep their own shape.** Rotate a tablet and the layout you set for that way round comes back. The first time you use an orientation, TOP! picks a sensible shape — two columns on a tablet held upright, one on a phone — and you change it from there.
+
+The rows share the height of the screen, so the whole surface fits without scrolling — `3 × 2` gives each row half the space under the top bar, `2 × 1` gives full-height cards. Fewer rows means taller cards.
+
+A row never gets shorter than the tightest card needs. Past that point the page scrolls rather than cutting a card in half, which is what happens on a phone with four cards stacked.
 
 Every card lives in that one grid, timers included — so the grid also sets **how many cards you can have**. A `3 × 2` grid holds six; `+ NEW` refuses to add a seventh and tells you why, and a grid shape too small for the cards already on screen is refused as well.
 
@@ -89,8 +103,8 @@ A card too short for its content **shrinks what is inside** rather than hiding i
 
 - **Drag** any card by the `☰` grip at the left of its title and drop it on another to swap the two — a timer can swap with the clock, the stopwatch or the OBS Media card
 - **Drag** the space between two columns or two rows to resize them; **double-click** it to even that axis out
-- **HIDE** collapses a card to its title bar
-- **SOLO** shows a single card full-page; press `Esc` or click **SOLO** again to return to the grid
+- **Maximize** shows a single card full-page; press `Esc` or click the button again to return to the grid
+- **Close** removes a card from the grid, after a confirmation
 
 All of this is saved in the browser and restored on next load.
 

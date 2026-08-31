@@ -1,5 +1,59 @@
 # Changelog
 
+## v2.6.2 — 2026-08
+
+### Fixed
+- **No more resize flicker at launch.** The clock dial painted at its CSS size and then shrank into place, a visible jump on every load. The page now waits the two frames it takes to measure and size everything, then appears already laid out. A safety timer lifts the veil whatever happens, so a script error can never leave a blank page
+- **The top bar no longer pushes the page sideways on a phone.** It wraps instead, and the subtitle, the logo and the button padding step back as the screen narrows
+- **A row never gets shorter than the tightest card needs** (232 px). Below that the page scrolls instead of cutting a card in half — on a phone, some scrolling is unavoidable and is better than a hidden START button
+
+### New — One grid per orientation
+- **Portrait and landscape each remember their own grid shape.** Rotate a tablet and the layout you set for that way round comes back, with the `GRID` field showing the right numbers. Before, portrait silently forced a single column and the field kept displaying the landscape shape
+- The first time an orientation is used, its shape is derived: portrait fits as many columns as stay readable — two on a tablet held upright, one on a phone — and stacks the rest; landscape mirrors the portrait shape
+- **A shape always grows to hold every card.** Rotating into an orientation whose saved shape is too small no longer leaves cards spilling into rows nobody asked for
+- Splitters work in portrait too
+
+Measured with 4 cards: iPad landscape 2 × 2 and portrait 2 × 2, both filling the screen with nothing cut; iPhone portrait 1 × 4 and landscape 2 × 2, both scrolling with every card intact.
+
+---
+
+## v2.6.1 — 2026-08
+
+- **`✎ EDIT` on stopwatch cards**, as on timers: rename and recolour a stopwatch after it has been created. The dialog drops the duration field, which a stopwatch has no use for
+
+---
+
+## v2.6.0 — 2026-08
+
+**Cards you add and remove.**
+
+### New — NEW CARD
+- **`+ NEW CARD` in the top bar.** Pick what to add — Timer, Stopwatch, or OBS Media Countdown — one at a time. Timers and stopwatches then ask for a name and a colour
+- **The Clock is offered only when there is none on the grid.** One is all anyone needs, but closing it by accident should not be a dead end
+- The OBS Media Countdown stays single for now: a second one would need its own WebSocket connection and its own source filter, which is a job of its own
+
+### New — Every card can be closed
+- **A close button on every card**, with a confirmation naming the card. What you close comes back from `+ NEW CARD`
+- Closing the Clock or the OBS card only detaches it: its wiring — and the OBS WebSocket — is kept, so putting it back is instant and it picks up where it was
+
+### New — Multiple stopwatches
+- Stopwatches work like timers now: **as many as you need**, each with its own name and colour, each counting independently. `C` and `X` drive the first one
+
+### Changed
+- **SOLO is now MAXIMIZE**, with a Lucide icon that turns into a minimize icon while a card is maximized. `F1`–`F4` maximize the first card of each kind
+- **Close and maximize are Lucide icons** rather than text buttons, which gives the header room to breathe
+- **The HIDE buttons are gone.** With fixed row heights they masked a card's content without freeing its cell, so they earned nothing — close the card instead
+- **The `+ NEW` button on the Timer card is gone**, replaced by `+ NEW CARD` in the top bar
+- TOP! opens on a 2 × 2 grid with Clock, Timer, Stopwatch and OBS Media Countdown. Since the grid holds exactly `columns × rows` cards, adding a fifth means enlarging the grid first
+
+- **The keyboard reminder is gone from the Timer card.** Shortcuts live in the `⌨ SHORTCUTS` dialog and nowhere else, so a card shows its countdown and its controls, nothing else. The dialog picked up what the card used to say: that shortcuts follow the selected timer, that a timer past zero counts up in red with a `+`, and that holding `+` / `−` runs the value
+
+### Under the hood
+- One saved list (`topCards`) now describes the whole layout — kind, order, names, colours, durations — replacing the separate timer list and card order. A v2.5 layout is migrated on first load
+- Maximize no longer keys off fixed element ids: one card carries `.solo-on` and the body carries `tool-<type>`, so cards created at runtime behave exactly like the built-in ones
+
+---
+
 ## v2.5.0 — 2026-08
 
 **Usable on a tablet, and no more cards cut in half.**
