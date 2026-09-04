@@ -15,11 +15,12 @@ Clock, stopwatch, countdown timer and OBS media countdown for live event product
 - **Reference clock** — Gorgy Timing-style circular dial with 60-segment second ring, date display
 - **Timers** — as many independent countdowns as you need. Each one has its own name, colour, duration, presets, sound switch and overtime. Live adjustment while running, color-coded progress ring (green → amber → red → blinking)
 - **Stopwatches** — as many as you need, each with its own name and colour. Start/pause/reset, digital and Gorgy dial view
-- **OBS Media Countdown** — connects to OBS Studio via WebSocket v5 and counts down the media source currently playing (Media Source, VLC playlists, playlist plugins). Auto-detects the on-air source, ignores looping backdrops, source filter with per-scene checkboxes and Audio/Video type switches. Connection settings are remembered and reconnect automatically. Shows "STAND BY" with the current scene name when nothing is playing
+- **OBS Media Countdown** — connects to OBS Studio via WebSocket v5 and counts down the media source currently playing (Media Source, VLC playlists, playlist plugins). Auto-detects the on-air source, ignores looping backdrops, source filter with per-scene checkboxes and Audio/Video type switches. Connection settings are remembered and reconnect automatically. Shows "STAND BY" with the current scene name under it — the name alone, sized with the dial and shortened if need be so it never runs under the ring
 - **Sound cues** — voice announcements at 5 min, 2 min, 1 min, 30 s, 20 s, then 10 → 1 s countdown, on both Timer and OBS Media Countdown. Master volume slider in the top bar
 - **Cards you add and remove** — `+ NEW CARD` adds a timer, a stopwatch or the OBS Media Countdown; every card has a close button and a maximize button. Type the grid shape you want (`3 × 2`, `4 × 1`…) in the top bar and the rows share the screen height. Drag & drop reordering between any two cards. Everything is remembered between sessions
 - **OBS integration** — per-tool Browser Source URLs with transparent background
 - **Stream Deck / Bitfocus Companion** — full control via keyboard shortcuts, no plugin needed
+- **Screen stays awake** — `☀ AWAKE` in the top bar asks the machine not to dim or sleep while TOP! is on screen
 - **Fully offline** — all assets embedded, Clock / Stopwatch / Timer work with no internet connection
 
 ---
@@ -81,6 +82,16 @@ New timers are added to the same grid as the other cards, side by side. **Drag a
 
 Use **`✎ EDIT`** on a timer or a stopwatch card to rename and recolour it — and, for a timer, to change its duration. Names, colours, durations and switches are remembered between sessions.
 
+## Keeping the screen awake
+
+`☀ AWAKE` in the top bar asks the operating system not to dim or put the display to sleep while TOP! is on screen. It is on by default and the choice is remembered.
+
+It uses the browser's own Screen Wake Lock — no permission dialog, no extension. The lock is released whenever the tab goes to the background and taken again when you come back to it. Chrome, Edge, Brave, Firefox and Safari 16.4 and later (iPad and iPhone included) support it; on an older browser the button is greyed out.
+
+> It keeps the *screen* awake, not the machine: closing a laptop lid still puts it to sleep, and a screensaver imposed by a company policy still wins.
+
+---
+
 > Voice cues are off by default on a new timer. Several timers announcing at once would talk over each other, so turn SOUND on only for the timer that should speak.
 
 ---
@@ -103,7 +114,7 @@ A card too short for its content **shrinks what is inside** rather than hiding i
 
 - **Drag** any card by the `☰` grip at the left of its title and drop it on another to swap the two — a timer can swap with the clock, the stopwatch or the OBS Media card
 - **Drag** the space between two columns or two rows to resize them; **double-click** it to even that axis out
-- **Maximize** shows a single card full-page; press `Esc` or click the button again to return to the grid
+- **Maximize** shows a single card full-page; press `Esc` or click the button again to return to the grid — the clock and the round dials are sized on the room actually left on screen, so nothing is ever cut off, portrait or landscape
 - **Close** removes a card from the grid, after a confirmation
 
 All of this is saved in the browser and restored on next load.

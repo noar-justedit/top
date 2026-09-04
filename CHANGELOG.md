@@ -1,5 +1,27 @@
 # Changelog
 
+## v2.7.0 — 2026-09
+
+### New — Keep the screen awake
+- **`☀ AWAKE` in the top bar.** While it is lit, the machine will not dim or sleep as long as TOP! is on screen — no more black display in the middle of a show because nobody touched the tablet for ten minutes. On by default, and the choice is remembered
+- It is the browser's own Screen Wake Lock, so it needs no permission dialog and no extension. The lock is dropped automatically whenever the tab goes to the background and taken again on return
+- Supported by Chrome, Edge, Brave, Firefox and Safari 16.4 and later (iPadOS/iOS included). On an older browser the button is greyed out and says so
+- **What it does not do:** it keeps the *screen* awake, not the machine. A closed laptop lid still sleeps, and a screensaver forced by an IT policy still wins
+
+### Fixed — Maximized cards fill the screen
+- **The clock is never cut off any more.** In the maximized view the dial was sized on the width of the card, so on a 16:10 laptop or an iPad in landscape the bottom of the dial ran off the screen and the page scrolled. It is now sized on the room actually left on screen and stays whole in both orientations, from a 390 px phone to a 1920 px display
+- The dial also **centres itself** in the leftover height: on a portrait screen, where the width limits the circle, the card no longer stops mid-page
+- **Same for the round dials of the OBS Media Countdown, the timers and the stopwatches.** They stayed at their grid size — a 300 px dial on a 900 px screen, half the page empty. They now take the height the card leaves them (480 px instead of 300 px on a 1440 × 900 display), the digital views keep their own layout unchanged
+
+### Fixed — Extra-timer Browser Sources were blank
+- **An `?tool=xtimer&obs=1…` Browser Source showed nothing at all in 2.6.2.** The anti-flicker veil added in that version was lifted at the end of the boot sequence, which the extra-timer path returns from early — so the page stayed hidden for good. The veil is now lifted whatever route the boot takes
+
+### Changed — OBS Media Countdown
+- **The dial shows the scene name on its own**, without the `Scene:` label — the name is what you read at a glance from across the room
+- The line is **sized with the dial and clipped to the width of the circle at that height**, so a long scene name can never run under the ring: it is shortened with an ellipsis instead
+
+---
+
 ## v2.6.2 — 2026-08
 
 ### Fixed

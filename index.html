@@ -105,6 +105,9 @@
     cursor:pointer;transition:.13s;white-space:nowrap;line-height:1;
   }
   .topbar button:hover{color:var(--txt);border-color:#34343d;}
+  .topbar button.act{color:var(--green);border-color:#1e5b39;background:#101a14;}
+  .topbar button:disabled{opacity:.4;cursor:not-allowed;}
+  .topbar button svg{width:12px;height:12px;vertical-align:-2px;margin-right:5px;}
   /* The top bar has to survive a phone: it wraps instead of pushing the page
      sideways, and the subtitle and logo step back when there is no room. */
   .topbar{flex-wrap:wrap;row-gap:10px;}
@@ -593,8 +596,18 @@
     background:rgba(7,7,8,.92);border-top:1px solid rgba(255,255,255,.07);
     font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--txt-dim);
   }
+  /* Maximized clock: the dial centres itself in whatever height is left over
+     (portrait screens limit the circle by width, so there is always some). */
+  body:not(.obs-mode).tool-clock .card.solo-on > .dial-wrap{
+    margin-top:auto;margin-bottom:auto;
+  }
   body:not(.obs-mode)[class*="tool-"] .readout{font-size:clamp(64px,15vw,160px);}
   body:not(.obs-mode)[class*="tool-"] .dial-sm{max-width:min(64vh,64vw);}
+  /* Maximized: the dial is measured in JS (--solodial) so it fills the height
+     actually left under the card, whatever else the card carries below it. */
+  body:not(.obs-mode)[class*="tool-"] .card.solo-on .dial-sm{
+    max-width:var(--solodial, min(64vh,64vw)) !important;width:100% !important;
+  }
   body:not(.obs-mode)[class*="tool-"] .dial-sm .digits{font-size:clamp(44px,10vw,90px) !important;}
   body:not(.obs-mode)[class*="tool-"] #mTdial .digits{font-size:var(--dlfs,clamp(44px,10vw,90px)) !important;}
   body:not(.obs-mode).tool-media .card.solo-on .dial-sm{max-width:min(56vh,56vw);}
@@ -820,7 +833,7 @@
 <div class="topbar">
   <div class="brand">
     <span class="dot"></span>
-    <div class="brand-txt"><h1>TOP!</h1><span class="sub">Live Event Time Control · v2.6.2</span></div>
+    <div class="brand-txt"><h1>TOP!</h1><span class="sub">Live Event Time Control · v2.7.0</span></div>
   </div>
   <div class="brand-right">
     <div class="vol-wrap" id="volWrap" title="Master volume">
@@ -834,6 +847,7 @@
       <input type="number" id="gsRows" min="1" max="6" value="2" inputmode="numeric" title="Rows">
     </div>
     <button id="newCardBtn" class="newcard"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>NEW CARD</button>
+    <button id="wakeBtn" title="Keep the screen awake while TOP! is open"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg><span id="wakeLbl">AWAKE</span></button>
     <button id="shortcutsBtn">⌨ SHORTCUTS</button>
     <button id="fsBtn">⤢ FULL SCREEN</button>
     <a href="https://www.just-edit.fr" target="_blank" rel="noopener"><img class="logo" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjE4LjggMTg3LjAgNDc0LjMgMTM4LjEiPgogIDwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyOS44LjIsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiAyLjEuMSBCdWlsZCAzKSAgLS0+CiAgPGRlZnM+CiAgICA8c3R5bGU+CiAgICAgIC5zdDAgewogICAgICAgIGZpbGw6ICNmZmY7CiAgICAgIH0KCiAgICAgIC5zdDEgewogICAgICAgIGZpbGw6ICM1OTM2ZDg7CiAgICAgIH0KICAgIDwvc3R5bGU+CiAgPC9kZWZzPgogIDxnPgogICAgPGc+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0zMi44NCwzMDguODd2LTEyLjJjMC0xLjQzLjM5LTIuMTUsMS4xOC0yLjE1LDIuNjIsMCw0LjQ3LS42NSw1LjU2LTEuOTQsMS4wOS0xLjI5LDEuNjQtMy4zLDEuNjQtNi4wMnYtNTkuMDdjMC0xLjQzLjcyLTIuMTUsMi4xNS0yLjE1aDEzLjg3YzEuNDMsMCwyLjE1LjcyLDIuMTUsMi4xNXY1OS4xM2MwLDcuODUtMi4wOSwxMy44OC02LjI2LDE4LjA5LTQuMTgsNC4yMS0xMC4yMiw2LjMyLTE4LjE0LDYuMzItMS40MywwLTIuMTUtLjcyLTIuMTUtMi4xNVoiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTExOC4zNCwyMjUuMzNoMTMuOThjMS40MywwLDIuMTUuNzIsMi4xNSwyLjE1djYwLjc0YzAsMS40My0uNzIsMi4xNS0yLjE1LDIuMTVoLTEwLjdjLTEuMTgsMC0yLjAxLS41Ni0yLjQ3LTEuNjdsLTIuMzEtNS41NGMtMi41MSwyLjQtNS42MSw0LjM4LTkuMyw1Ljk0LTMuNjksMS41Ni03LjIyLDIuMzQtMTAuNTksMi4zNC01LjI3LDAtOS44OS0xLjItMTMuODctMy42cy03LjA2LTUuOC05LjI1LTEwLjE5Yy0yLjE5LTQuMzktMy4yOC05LjQ3LTMuMjgtMTUuMjR2LTM0Ljk0YzAtMS40My43Mi0yLjE1LDIuMTUtMi4xNWgxMy45OGMxLjQzLDAsMi4xNS43MiwyLjE1LDIuMTV2MzIuOWMwLDIuODcuNTMsNS4zOSwxLjU5LDcuNTUsMS4wNiwyLjE3LDIuNTQsMy44NCw0LjQ2LDUuMDNzNC4xNSwxLjc3LDYuNjksMS43N2MyLjY5LDAsNS4xNS0uNjQsNy4zOS0xLjkxLDIuMjQtMS4yNyw0LTIuOTUsNS4yOS01LjAzczEuOTQtNC4yOCwxLjk0LTYuNjF2LTMzLjdjMC0xLjQzLjcyLTIuMTUsMi4xNS0yLjE1WiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QwIiBkPSJNMTU1LjIyLDI4OS40M2MtNC4yOC0xLjctOC4yOS00LjItMTIuMDEtNy41LS41Ny0uNDYtLjg2LS45OC0uODYtMS41NiwwLS40Ni4yLS45NS41OS0xLjQ1bDcuMjYtOS4wOGMuNS0uNjEsMS4wMi0uOTEsMS41Ni0uOTEuMzksMCwuODguMiwxLjQ1LjU5LDIuNjIsMS45Nyw1LjIsMy40OSw3Ljc3LDQuNTcsMi41NiwxLjA4LDUuMTUsMS42MSw3Ljc3LDEuNjEsMS43OSwwLDMuMjMtLjM1LDQuMy0xLjA1LDEuMDctLjcsMS42MS0xLjY5LDEuNjEtMi45OCwwLS44Ni0uMzEtMS42NS0uOTQtMi4zN3MtMS43MS0xLjQ0LTMuMjUtMi4xOGMtMS41NC0uNzMtMy43My0xLjU5LTYuNTYtMi41NS01LjQxLTEuODMtOS44Ny00LjMyLTEzLjM4LTcuNDctMy41MS0zLjE1LTUuMjctNy40OS01LjI3LTEzLjAxLDAtMy41MS44Ny02Ljc3LDIuNjEtOS43OCwxLjc0LTMuMDEsNC4zOS01LjQ0LDcuOTYtNy4yOCwzLjU3LTEuODUsNy45NS0yLjc3LDEzLjE0LTIuNzcsMy41OCwwLDcuMjYuNzEsMTEuMDUsMi4xMiwzLjc4LDEuNDIsNy4xMiwzLjUyLDEwLjAyLDYuMzIuNS41Ljc1LDEsLjc1LDEuNSwwLC40My0uMjUuOTMtLjc1LDEuNWwtOC40OSw4Ljc2Yy0uNDcuNS0uOTcuNzUtMS41MS43NS0uNDcsMC0uOTctLjIxLTEuNS0uNjUtMS40Ny0xLjE4LTMuMDktMi4xNi00Ljg2LTIuOTMtMS43Ny0uNzctMy41NC0xLjE2LTUuMjktMS4xNnMtMy4yMi4zNC00LjE3LDEuMDJjLS45NS42OC0xLjQyLDEuNjEtMS40MiwyLjc5LDAsLjgyLjM1LDEuNTcsMS4wNSwyLjIzczEuODIsMS4zMywzLjM2LDEuOTljMS41NC42NiwzLjY5LDEuNDQsNi40NSwyLjM0LDUuOTEsMS45LDEwLjQ4LDQuNDQsMTMuNzEsNy42MywzLjIzLDMuMTksNC44NCw3LjUxLDQuODQsMTIuOTYsMCwzLjU1LS45MSw2Ljg5LTIuNzEsMTAuMDItMS44MSwzLjE0LTQuNDQsNS42Ny03LjksNy42MS0zLjQ2LDEuOTMtNy41NSwyLjktMTIuMjgsMi45LTUuMDksMC05Ljc3LS44NS0xNC4wNi0yLjU1WiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QwIiBkPSJNMjE2LjkzLDI5MC4zN2gtMTMuOThjLTEuNDMsMC0yLjE1LS43Mi0yLjE1LTIuMTV2LTQ1Ljk2aC01LjM4Yy0xLjQzLDAtMi4xNS0uNzItMi4xNS0yLjE1di0xMi42M2MwLTEuNDMuNzItMi4xNSwyLjE1LTIuMTVoNS4yN3YtMTEuNzJjMC0xLjMzLjY1LTIuMTEsMS45NC0yLjM3bDE0LjE0LTIuNzRjLjE0LS4wMy4zMi0uMDUuNTQtLjA1LjU3LDAsMS4wMi4xOCwxLjM0LjU0LjMyLjM2LjQ4Ljg0LjQ4LDEuNDV2MTQuODloMTAuMTFjMS40MywwLDIuMTUuNzIsMi4xNSwyLjE1djEyLjYzYzAsMS40My0uNzIsMi4xNS0yLjE1LDIuMTVoLTEwLjE2djQ1Ljk2YzAsMS40My0uNzIsMi4xNS0yLjE1LDIuMTVaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0yNjQuMjgsMjg3LjQyYy01LjE2LTMuMDQtOS4xOC03LjE1LTEyLjA3LTEyLjMxLTIuODgtNS4xNi00LjMzLTEwLjc5LTQuMzMtMTYuODhzMS4zNy0xMS44Myw0LjExLTE3LjAxYzIuNzQtNS4xOCw2LjU3LTkuMywxMS40OC0xMi4zNiw0LjkxLTMuMDYsMTAuNDgtNC42LDE2LjcyLTQuNiw2Ljc0LDAsMTIuNTgsMS40NSwxNy41Miw0LjM1LDQuOTQsMi45LDguNzIsNi45MiwxMS4zMiwxMi4wNCwyLjYsNS4xMywzLjksMTAuOTUsMy45LDE3LjQ3LDAsMS40My0uMDcsMi44NS0uMjEsNC4yNS0uMTQsMS4zMy0uOSwxLjk5LTIuMjYsMS45OWgtNDMuODFjMS4xOCwzLjU4LDMuMjEsNi4zOCw2LjA3LDguMzksMi44NywyLjAxLDYuMTMsMy4wMSw5Ljc4LDMuMDEsMi4zMywwLDQuNDMtLjMzLDYuMzItMSwxLjg4LS42NiwzLjcyLTEuNjIsNS41MS0yLjg4LjQ3LS4zNi45My0uNTQsMS40LS41NC41NywwLDEuMDkuMzIsMS41Ni45N2w2LjYxLDkuNDFjLjMyLjQ3LjQ4LjkxLjQ4LDEuMzQsMCwuNjEtLjI5LDEuMTUtLjg2LDEuNjEtMi45NywyLjMzLTYuMyw0LjEzLTkuOTcsNS40LTMuNjcsMS4yNy03LjYxLDEuOTEtMTEuOCwxLjkxLTYuNDksMC0xMi4zMS0xLjUyLTE3LjQ3LTQuNTdaTTI4OS43MSwyNDIuNzVjLTIuNDQtMS45LTUuNDEtMi44NS04LjkyLTIuODVzLTYuNDIuOTctOC45NSwyLjljLTIuNTMsMS45My00LjMxLDQuNjQtNS4zNSw4LjEyaDI4LjM4Yy0xLTMuNTUtMi43Mi02LjI3LTUuMTYtOC4xN1oiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MSIgZD0iTTM2Ny45LDIwNi4yNWgxMy45OGMxLjQzLDAsMi4xNS43MiwyLjE1LDIuMTV2NzkuODJjMCwxLjQzLS43MiwyLjE1LTIuMTUsMi4xNWgtMTAuN2MtMS4xOCwwLTIuMDEtLjU2LTIuNDctMS42N2wtMS4zNC0zLjIyYy00LjQ4LDQuMTktMTAuMTEsNi4yOS0xNi44OCw2LjI5LTYuMTMsMC0xMS43Ny0xLjUxLTE2LjkzLTQuNTQtNS4xNi0zLjAzLTkuMjUtNy4xMy0xMi4yNi0xMi4zMS0zLjAxLTUuMTgtNC41Mi0xMC44NS00LjUyLTE3LjAxczEuNTEtMTEuNzYsNC41NC0xNi45MWMzLjAzLTUuMTQsNy4xMi05LjIyLDEyLjI4LTEyLjIzLDUuMTYtMy4wMSwxMC43OS00LjUyLDE2Ljg4LTQuNTJzMTEuMDcsMS42MywxNS4yNyw0Ljg5di0yMC43NWMwLTEuNDMuNzItMi4xNSwyLjE1LTIuMTVaTTM1OC45NSwyNzIuMjNjMi40NS0xLjM4LDQuMzktMy4zLDUuODEtNS43NSwxLjQxLTIuNDUsMi4xMi01LjIyLDIuMTItOC4zcy0uNy01LjkyLTIuMS04LjQxYy0xLjQtMi40OS0zLjMyLTQuNDUtNS43NS01Ljg5LTIuNDQtMS40My01LjE0LTIuMTUtOC4xMi0yLjE1cy01LjY3LjcxLTguMDksMi4xMmMtMi40MiwxLjQyLTQuMzIsMy4zOC01LjcsNS44OS0xLjM4LDIuNTEtMi4wNyw1LjMyLTIuMDcsOC40NHMuNjgsNS45LDIuMDQsOC4zM2MxLjM2LDIuNDQsMy4yMyw0LjM1LDUuNjIsNS43MiwyLjM4LDEuMzgsNS4wOCwyLjA3LDguMDksMi4wN3M1LjY5LS42OSw4LjE0LTIuMDdaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik00MTIuNzEsMjkwLjM3aC0xMy45OGMtMS40MywwLTIuMTUtLjcyLTIuMTUtMi4xNXYtNjAuNzRjMC0xLjQzLjcyLTIuMTUsMi4xNS0yLjE1aDEzLjk4YzEuNDMsMCwyLjE1LjcyLDIuMTUsMi4xNXY2MC43NGMwLDEuNDMtLjcyLDIuMTUtMi4xNSwyLjE1WiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QxIiBkPSJNNDQ0LjEzLDI5MC4zN2gtMTMuOThjLTEuNDMsMC0yLjE1LS43Mi0yLjE1LTIuMTV2LTQ1Ljk2aC01LjM4Yy0xLjQzLDAtMi4xNS0uNzItMi4xNS0yLjE1di0xMi42M2MwLTEuNDMuNzItMi4xNSwyLjE1LTIuMTVoNS4yN3YtMTEuNzJjMC0xLjMzLjY1LTIuMTEsMS45NC0yLjM3bDE0LjE0LTIuNzRjLjE0LS4wMy4zMi0uMDUuNTQtLjA1LjU3LDAsMS4wMi4xOCwxLjM0LjU0LjMyLjM2LjQ4Ljg0LjQ4LDEuNDV2MTQuODloMTAuMTFjMS40MywwLDIuMTUuNzIsMi4xNSwyLjE1djEyLjYzYzAsMS40My0uNzIsMi4xNS0yLjE1LDIuMTVoLTEwLjE2djQ1Ljk2YzAsMS40My0uNzIsMi4xNS0yLjE1LDIuMTVaIi8+CiAgICA8L2c+CiAgICA8cGF0aCBjbGFzcz0ic3QwIiBkPSJNNDMuMjEsMjAwLjk4aDE0LjI0YzEuMTksMCwyLjE1Ljk2LDIuMTUsMi4xNXYxMi42M2MwLDEuMTktLjk2LDIuMTUtMi4xNSwyLjE1aC0xNC4yNGMtMS4xOSwwLTIuMTUtLjk2LTIuMTUtMi4xNXYtMTIuNjNjMC0xLjE5Ljk2LTIuMTUsMi4xNS0yLjE1WiIvPgogICAgPHBhdGggY2xhc3M9InN0MSIgZD0iTTM5OC42MiwyMDEuNDFoMTQuMjRjMS4xOSwwLDIuMTUuOTYsMi4xNSwyLjE1djEyLjYzYzAsMS4xOS0uOTYsMi4xNS0yLjE1LDIuMTVoLTE0LjI0Yy0xLjE5LDAtMi4xNS0uOTYtMi4xNS0yLjE1di0xMi42M2MwLTEuMTkuOTYtMi4xNSwyLjE1LTIuMTVaIi8+CiAgPC9nPgogIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik00NjEuNzUsMjcyLjI4aDE0LjI0YzEuMTksMCwyLjE1Ljk2LDIuMTUsMi4xNXYxMi42M2MwLDEuMTktLjk2LDIuMTUtMi4xNSwyLjE1aC0xNC4yNGMtMS4xOSwwLTIuMTUtLjk2LTIuMTUtMi4xNXYtMTIuNjNjMC0xLjE5Ljk2LTIuMTUsMi4xNS0yLjE1WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTQxLjYzIDg1LjY4KSByb3RhdGUoLTEwKSIvPgo8L3N2Zz4=" alt="JustEdit" /></a>
@@ -2179,8 +2193,48 @@ function setMaximized(card){
   refreshMaxIcons();
   if(window._topRetagCards) setTimeout(window._topRetagCards, 30);
   if(window._topApplyGrid)  setTimeout(window._topApplyGrid, 40);
+  /* the clock dial is sized in JS: re-run it once the layout has settled,
+     entering *and* leaving the maximized view */
+  if(window._topScaleClock){
+    requestAnimationFrame(window._topScaleClock);
+    setTimeout(window._topScaleClock, 60);
+    setTimeout(window._topScaleClock, 200);
+  }
+  if(window._topFitSoloDial){
+    requestAnimationFrame(window._topFitSoloDial);
+    setTimeout(window._topFitSoloDial, 80);
+    setTimeout(window._topFitSoloDial, 240);
+  }
 }
 function setSolo(){ setMaximized(null); }
+
+/* Maximized cards other than the clock: the grid switches to auto rows, so the
+   card is only as tall as its content and the round dials stayed at their grid
+   size with half the screen empty under them. Measure what the card carries
+   besides the dial, give the dial the rest of the page. */
+function fitSoloDial(){
+  document.querySelectorAll('.grid > .card').forEach(c=>{
+    if(!c.classList.contains('solo-on')){ c.style.removeProperty('--solodial'); c.style.minHeight=''; }
+  });
+  if(document.body.classList.contains('obs-mode')) return;
+  const card = document.querySelector('.grid > .card.solo-on');
+  if(!card || card.dataset.type === 'clock') return;   // the clock has its own sizing
+  card.style.minHeight = '';                            // measure the natural height
+  const dial = card.querySelector('.dial-sm');
+  const dr   = dial ? dial.getBoundingClientRect() : null;
+  if(!dr || !dr.height){ card.style.removeProperty('--solodial'); return; }  // digital view
+  const vh    = window.innerHeight || document.documentElement.clientHeight;
+  const cr    = card.getBoundingClientRect();
+  /* everything but the dial keeps its height whatever the dial does, so this
+     converges in one pass instead of chasing its own result */
+  const rest  = card.scrollHeight - dr.height;
+  const avail = vh - cr.top - rest - 12;
+  const size  = Math.max(120, Math.min(cr.width - 24, avail));
+  card.style.setProperty('--solodial', Math.round(size) + 'px');
+  card.style.minHeight = Math.max(120, vh - cr.top - 12) + 'px';
+}
+window._topFitSoloDial = fitSoloDial;
+window.addEventListener('resize', ()=> setTimeout(fitSoloDial, 60));
 
 /* ================= OBS URL BUTTONS ================= */
 (function(){
@@ -2224,6 +2278,57 @@ function setSolo(){ setMaximized(null); }
   document.addEventListener('click', ()=>{
     document.querySelectorAll('.obs-popup.open').forEach(p=>p.classList.remove('open'));
   });
+})();
+
+/* ================= SCREEN WAKE LOCK =================
+   Asks the OS not to dim or sleep the screen while TOP! is on show. The lock
+   is dropped by the browser whenever the tab is hidden, so it is re-taken on
+   every return to the page. Some browsers only grant it after a user gesture,
+   hence the one-shot retry on the first click. */
+(function(){
+  const btn = document.getElementById('wakeBtn');
+  if(!btn) return;
+  if(document.body.classList.contains('obs-mode')){ btn.style.display='none'; return; }
+
+  const supported = ('wakeLock' in navigator);
+  let lock = null;
+  let want = LS.get('topWakeLock') !== '0';        // on by default
+
+  function paint(){
+    btn.classList.toggle('act', !!lock);
+    btn.title = !supported
+      ? 'Keep the screen awake — not supported by this browser'
+      : (lock ? 'Screen kept awake — click to allow sleep'
+              : (want ? 'Waiting for permission to keep the screen awake — click the page'
+                      : 'Screen may sleep — click to keep it awake'));
+  }
+  if(!supported){ btn.disabled = true; paint(); return; }
+
+  async function acquire(){
+    if(!want || lock || document.visibilityState !== 'visible') return;
+    try{
+      lock = await navigator.wakeLock.request('screen');
+      lock.addEventListener('release', ()=>{ lock = null; paint(); });
+    }catch(e){ lock = null; }
+    paint();
+  }
+  function release(){
+    if(lock){ const l = lock; lock = null; l.release().catch(()=>{}); }
+    paint();
+  }
+
+  btn.addEventListener('click', ()=>{
+    want = !want;
+    LS.set('topWakeLock', want ? '1' : '0');
+    if(want) acquire(); else release();
+  });
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState === 'visible') acquire();
+  });
+  document.addEventListener('pointerdown', ()=>{ acquire(); }, {once:true});
+  window._topWakeState = () => ({supported, want, held: !!lock});
+  paint();
+  acquire();
 })();
 
 /* ================= SHORTCUTS MODAL ================= */
@@ -2402,7 +2507,31 @@ if(document.body.classList.contains('obs-mode')){
     const ws      = getComputedStyle(dialWrap);
     const marginV = parseFloat(ws.marginTop) + parseFloat(ws.marginBottom);
     const availW  = cr.width  - padW - 4;                       // anti-overflow margin
-    const availH  = cr.height - headH - padH - marginV - 2;
+    let   availH  = cr.height - headH - padH - marginV - 2;
+
+    /* Maximized (non-OBS): the grid switches to auto rows, so the card height
+       follows its own content — measuring it would let the dial size itself
+       from the width and spill off the bottom of the screen. Measure the room
+       actually left on screen instead: viewport minus everything in the card
+       that is not the dial. */
+    if(card.classList.contains('solo-on') && !document.body.classList.contains('obs-mode')){
+      const vh = window.innerHeight || document.documentElement.clientHeight;
+      let others = 0;
+      for(const el of card.children){
+        if(el === dialWrap) continue;
+        const r = el.getBoundingClientRect();
+        if(r.height) others += r.height;
+      }
+      /* the dial takes auto margins in this state (see CSS) so it centres in
+         the leftover height; use the base margin here, never the resolved one,
+         or the measurement would chase its own result */
+      availH = vh - cr.top - padH - others - 10 - 12;
+      /* fill the page: in portrait it is the width that limits the circle, so
+         without this the card would stop mid-screen */
+      card.style.minHeight = Math.max(120, vh - cr.top - 12) + 'px';
+    } else if(card.style.minHeight){
+      card.style.minHeight = '';
+    }
 
     const size = Math.max(40, Math.min(availW, availH));
 
@@ -2796,7 +2925,8 @@ if(document.body.classList.contains('obs-mode')){
   /* Scene */
   function mSetScene(n){
     mSceneNm.textContent=n||'—';mCurScene=n||null;mRefreshVis();
-    mSbScene.textContent = n ? 'Scene: '+n : '';
+    mSbScene.textContent = n || '';
+    mScaleDial();                      // re-fit the line to the ring
   }
   async function mLoadScene(){
     const r=await mRequest('GetCurrentProgramScene');
@@ -2950,6 +3080,22 @@ if(document.body.classList.contains('obs-mode')){
     if(!w) return;
     const fs = Math.max(15, Math.min(90, w*0.155));
     mTdial.style.setProperty('--dlfs', fs.toFixed(1)+'px');
+
+    /* The scene name sits under the digits, off the centre of the dial, so the
+       ring closes in on it. Size it with the dial, then clip it to the width of
+       the circle at that height (chord = 2·√(r² − dy²)) — it can never run
+       under the ring, however long the scene is called. */
+    if(mSbScene){
+      mSbScene.style.fontSize = Math.max(8, Math.min(20, w*0.052)).toFixed(1)+'px';
+      const wr = wrap.getBoundingClientRect();
+      const sr = mSbScene.getBoundingClientRect();
+      if(sr.height){
+        const dy   = Math.abs((sr.top + sr.height/2) - (wr.top + wr.height/2)) + sr.height/2;
+        const r    = w*0.415 - w*0.03;                 // inside the ring stroke
+        const half = Math.sqrt(Math.max(0, r*r - dy*dy));
+        mSbScene.style.maxWidth = Math.max(36, 2*half).toFixed(0)+'px';
+      }
+    }
   }
   const mDialWrap = mTdial.querySelector('.dial-wrap');
   if(window.ResizeObserver && mDialWrap) new ResizeObserver(mScaleDial).observe(mDialWrap);
@@ -3248,6 +3394,13 @@ function showToast(msg, isError){
 (function buildLayout(){
   const p = new URLSearchParams(location.search);
 
+  /* The page is hidden until the layout is built (no resize flash). Schedule
+     the reveal here, before anything can return early — an extra-timer Browser
+     Source used to leave the page hidden for good. */
+  const reveal = () => document.documentElement.classList.remove('booting');
+  requestAnimationFrame(()=>requestAnimationFrame(reveal));
+  setTimeout(reveal, 2000);            // never leave the page hidden
+
   /* An OBS Browser Source for an extra timer is a separate browser with its own
      storage, so the card is described entirely by the URL. */
   if(p.get('tool')==='xtimer'){
@@ -3286,9 +3439,6 @@ function showToast(msg, isError){
   if(window._topApplyGrid)   window._topApplyGrid();
   if(window._topScaleClock)  window._topScaleClock();
   if(window._topRetagCards)  window._topRetagCards();
-  const reveal = () => document.documentElement.classList.remove('booting');
-  requestAnimationFrame(()=>requestAnimationFrame(reveal));
-  setTimeout(reveal, 2000);            // never leave the page hidden
 })();
 
 /* ================= SOUND (Web Audio, offline) ================= */
