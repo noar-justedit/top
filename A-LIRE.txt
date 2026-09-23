@@ -1,0 +1,36 @@
+TOP! v2.8.0 — contenu de l'archive
+==================================
+
+À COMMITTER dans le dépôt :
+
+  index.html          l'application, version 2.8.0
+  screenshot-v2.png   nouvelle capture (barre du haut réorganisée)
+
+À INTÉGRER À LA MAIN :
+
+  CHANGELOG-2.8.0.md         bloc à coller en haut de ton CHANGELOG.md
+  README-2.8.0-sections.md   sections à ajouter dans ton README.md
+
+  Le conteneur de la session a été recyclé entre la 2.7.0 et la 2.8.0 :
+  je n'avais plus tes CHANGELOG.md et README.md complets. Renvoie-les
+  moi et je te rends les deux fichiers entiers.
+
+À NE PAS COMMITTER :
+
+  RELEASE-NOTE-v2.8.0.md
+      Texte à coller dans la description de la release GitHub
+      au moment de créer le tag v2.8.0.
+
+  A-LIRE.txt
+      Ce fichier.
+
+
+Ce que contient la 2.8.0
+------------------------
+- Écran projecteur : toute la grille sur un second écran, sans les réglages
+- Bouton écran par carte : une carte seule, en très grand
+- Barre du haut réorganisée, boutons en icônes, infobulles partout
+- Correctif : la Browser Source OBS Media affichait ses panneaux de texte
+
+Le second écran ne concerne pas les Browser Sources OBS, qui restent
+des instances indépendantes.

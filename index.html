@@ -106,6 +106,12 @@
   }
   .topbar button:hover{color:var(--txt);border-color:#34343d;}
   .topbar button.act{color:var(--green);border-color:#1e5b39;background:#101a14;}
+  /* icon-only buttons: square, the name lives in the tooltip */
+  .topbar button.iconly{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:32px;height:26px;padding:0;
+  }
+  .topbar button.iconly svg{width:15px;height:15px;margin:0;vertical-align:middle;}
   .topbar button:disabled{opacity:.4;cursor:not-allowed;}
   .topbar button svg{width:12px;height:12px;vertical-align:-2px;margin-right:5px;}
   /* The top bar has to survive a phone: it wraps instead of pushing the page
@@ -447,6 +453,125 @@
     margin:auto !important;
   }
 
+  /* ========== SECOND SCREEN — WHOLE GRID ==========
+     The same cards in the same places, with everything you press taken away. */
+  body.screen-grid .topbar{display:none !important;}
+  body.screen-grid{padding-top:14px;}
+  body.screen-grid .cardbtns,
+  body.screen-grid .draghandle,
+  body.screen-grid .t-armed,
+  body.screen-grid .btns,
+  body.screen-grid .presets,
+  body.screen-grid .time-input,
+  body.screen-grid .sound-sw,
+  body.screen-grid .media-ws-settings,
+  body.screen-grid .media-src-row,
+  body.screen-grid .fs-info,
+  body.screen-grid .grid-splitter,
+  body.screen-grid #mConnDot,
+  body.screen-grid .obs-popup{display:none !important;}
+  body.screen-grid .card{cursor:default;resize:none;}
+  body.screen-grid .card .label{
+    font-size:clamp(11px,1.15vw,22px);letter-spacing:.26em;
+    color:var(--tcol,var(--txt-dim));
+  }
+  body.screen-grid .card .label .pip{
+    background:var(--tcol,var(--red));box-shadow:0 0 10px var(--tcol,var(--red));
+  }
+  /* the figure owns the room the controls used to take */
+  /* One view at a time, the one chosen on the control window. These rules set
+     `display`, so they have to repeat the digital/dial switch themselves —
+     otherwise the card would show both at once. The OBS card is the exception:
+     there the dial and the text panels go together, as they do in the grid. */
+  body.screen-grid .flat-view{flex:1 1 0;min-height:0;overflow:hidden;}
+  body.screen-grid .dial-view{flex:1 1 0;min-height:0;}
+  body.screen-grid .card.dialmode > .flat-view{display:none !important;}
+  body.screen-grid .card:not(.dialmode):not(#mediaCard) > .dial-view{display:none !important;}
+  body.screen-grid .card:not(.dialmode):not(#mediaCard) > .flat-view,
+  body.screen-grid .card.dialmode > .dial-view,
+  body.screen-grid #mediaCard > .dial-view{
+    /* centred: stretched by the flex layout a dial would lose its aspect ratio
+       and come out as an oval on a tall card */
+    display:flex;align-items:center;justify-content:center;
+  }
+  /* the OBS card keeps its text panels as they are — they are information, not
+     controls — and the dial takes everything that is left */
+  body.screen-grid #mediaCard > .flat-view{flex:0 0 auto;}
+  /* the round dials are measured per card (--gdial) and fill their half */
+  body.screen-grid .dial-sm{
+    width:100% !important;max-width:var(--gdial,300px) !important;
+    margin:0 auto !important;
+  }
+  body.screen-grid .readout{line-height:1;}
+  body.screen-grid .card{display:flex;flex-direction:column;}
+  body.screen-grid.sc-stale .grid{opacity:.34;transition:opacity .4s;}
+
+  /* ========== SECOND SCREEN ========== */
+  /* Built on the OBS layout, but opaque and with the card name kept. */
+  body.screen-mode{background:var(--bg) !important;}
+  body.screen-mode .card.solo-on{
+    background:var(--bg) !important;padding:0 !important;
+  }
+  body.screen-mode .card.solo-on > .cardhead{
+    display:flex !important;position:fixed;top:0;left:0;right:0;z-index:5;
+    padding:18px 26px;background:none;border:none;pointer-events:none;
+  }
+  body.screen-mode .cardbtns,
+  body.screen-mode .draghandle,
+  body.screen-mode .t-armed,
+  body.screen-mode #mConnDot{display:none !important;}
+  /* a little smaller than an OBS source, so the card name has its own air */
+  body.screen-mode:not(.screen-grid) .dial-sm{
+    width:min(84vw,84vh) !important;height:min(84vw,84vh) !important;
+    max-width:min(84vw,84vh) !important;
+  }
+  body.screen-mode.tool-clock .card.solo-on .dial-wrap{
+    width:min(92vw,86vh) !important;height:min(92vw,86vh) !important;
+    max-width:min(92vw,86vh) !important;max-height:min(92vw,86vh) !important;
+  }
+  body.screen-mode .card.solo-on .label{
+    font-size:clamp(14px,2.4vw,52px);letter-spacing:.3em;color:var(--tcol,var(--txt-dim));
+    margin:0;gap:12px;
+  }
+  body.screen-mode .card.solo-on .label .pip{
+    width:clamp(8px,1.1vw,14px);height:clamp(8px,1.1vw,14px);
+    background:var(--tcol,var(--red));box-shadow:0 0 12px var(--tcol,var(--red));
+  }
+  body.screen-mode .overtime-badge{font-size:clamp(12px,1.8vw,34px);}
+  /* A stage display is read from the back of the room: the digits take the
+     screen. Bounded on both axes so the longest format (1:23:45, or a stopwatch
+     with hundredths) still fits without a scrollbar. */
+  body.screen-mode:not(.screen-grid) .readout{font-size:min(17vw,50vh) !important;line-height:1;}
+  body.screen-mode:not(.screen-grid) .dig-chr,
+  body.screen-mode:not(.screen-grid) .dig-tmr{font-size:min(15vmin,26vh) !important;}
+  /* Lost the control window: dim rather than freeze on a lie */
+  body.screen-mode.sc-stale .card.solo-on{opacity:.34;transition:opacity .4s;}
+  .sc-fs{
+    position:fixed;inset:auto 0 34px 0;margin:0 auto;width:max-content;z-index:60;
+    font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--txt);background:rgba(20,20,26,.92);
+    border:1px solid var(--panel-edge);border-radius:999px;padding:12px 26px;
+    cursor:pointer;transition:opacity .5s ease;
+  }
+  .sc-fs:hover{border-color:#3a3a44;}
+  .sc-fs.hidden{opacity:0;pointer-events:none;}
+  /* the SCREEN button on a card, lit while its screen is open */
+  .scrbtn.act{color:#6fd3ff;border-color:#1d4a63;background:#0e1c24;}
+
+  /* ========== HOVER TOOLTIPS ==========
+     The native browser tooltip is slow and unstyled, and the top bar is now
+     icons only — so the wording matters. */
+  #tiptip{
+    position:fixed;z-index:9998;pointer-events:none;
+    max-width:280px;padding:7px 11px;border-radius:8px;
+    background:#16161c;border:1px solid #33333d;
+    box-shadow:0 10px 26px rgba(0,0,0,.6);
+    font-family:var(--sans);font-size:11.5px;line-height:1.35;
+    letter-spacing:.02em;color:var(--txt);
+    opacity:0;transform:translateY(-3px);transition:opacity .12s ease,transform .12s ease;
+  }
+  #tiptip.show{opacity:1;transform:none;}
+
   /* OBS hint: fades after 4s */
   .obs-hint{
     position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
@@ -578,7 +703,11 @@
   #mediaCard .dial-sm{max-width:min(46vh,300px);width:100%;position:relative;aspect-ratio:1;margin:0 auto;}
   #mTdial .digits{font-size:var(--dlfs,clamp(32px,8vw,50px)) !important;}
   body.obs-mode.tool-media .card.solo-on .dial-view{display:flex !important;align-items:center;justify-content:center;flex:1;width:100%;}
-  body.obs-mode.tool-media .card.solo-on .flat-view{display:none !important;}
+  /* #mediaCard .flat-view above carries an id and an !important, so the rule
+     that hides it needs the id too — without it the OBS Browser Source and the
+     second screen kept showing the text panels under the dial. */
+  body.obs-mode.tool-media #mediaCard.solo-on .flat-view,
+  body.screen-mode #mediaCard.solo-on .flat-view{display:none !important;}
   /* Drag & drop — only the grip icon moves a card */
   .draghandle{display:inline-flex;align-items:center;flex-shrink:0;color:var(--txt-dim);
     cursor:grab;padding:1px;border-radius:4px;transition:color .13s,background .13s;}
@@ -833,13 +962,9 @@
 <div class="topbar">
   <div class="brand">
     <span class="dot"></span>
-    <div class="brand-txt"><h1>TOP!</h1><span class="sub">Live Event Time Control · v2.7.0</span></div>
+    <div class="brand-txt"><h1>TOP!</h1><span class="sub">Live Event Time Control · v2.8.0</span></div>
   </div>
   <div class="brand-right">
-    <div class="vol-wrap" id="volWrap" title="Master volume">
-      <span class="vol-icon" id="volIcon"></span>
-      <input type="range" id="volSlider" min="0" max="100" value="100" step="1">
-    </div>
     <div class="gridsize" title="Grid layout — columns × rows. The rows share the screen height.">
       <span class="gs-lbl">GRID</span>
       <input type="number" id="gsCols" min="1" max="8" value="2" inputmode="numeric" title="Columns">
@@ -847,9 +972,14 @@
       <input type="number" id="gsRows" min="1" max="6" value="2" inputmode="numeric" title="Rows">
     </div>
     <button id="newCardBtn" class="newcard"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>NEW CARD</button>
-    <button id="wakeBtn" title="Keep the screen awake while TOP! is open"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg><span id="wakeLbl">AWAKE</span></button>
-    <button id="shortcutsBtn">⌨ SHORTCUTS</button>
-    <button id="fsBtn">⤢ FULL SCREEN</button>
+    <button id="fsBtn" class="iconly" title="Full screen" aria-label="Full screen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 15 6 6"/><path d="m15 9 6-6"/><path d="M21 16v5h-5"/><path d="M21 8V3h-5"/><path d="M3 16v5h5"/><path d="m3 21 6-6"/><path d="M3 8V3h5"/><path d="M9 9 3 3"/></svg></button>
+    <button id="screenBtn" class="iconly" title="Screen projector — every card on another screen, without the controls" aria-label="Screen projector"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7 3 5"/><path d="M9 6V3"/><path d="m13 7 2-2"/><circle cx="9" cy="13" r="3"/><path d="M11.83 12H20a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h.17"/><path d="M16 16h2"/></svg></button>
+    <button id="wakeBtn" class="iconly" title="Stay awake — keep the screen from dimming or sleeping" aria-label="Stay awake"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M6 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/></svg></button>
+    <button id="shortcutsBtn" class="iconly" title="Keyboard shortcuts" aria-label="Keyboard shortcuts"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 8h.01"/><path d="M12 12h.01"/><path d="M14 8h.01"/><path d="M16 12h.01"/><path d="M18 8h.01"/><path d="M6 8h.01"/><path d="M7 16h10"/><path d="M8 12h.01"/><rect width="20" height="16" x="2" y="4" rx="2"/></svg></button>
+    <div class="vol-wrap" id="volWrap" title="Master volume">
+      <span class="vol-icon" id="volIcon"></span>
+      <input type="range" id="volSlider" min="0" max="100" value="100" step="1">
+    </div>
     <a href="https://www.just-edit.fr" target="_blank" rel="noopener"><img class="logo" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjE4LjggMTg3LjAgNDc0LjMgMTM4LjEiPgogIDwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyOS44LjIsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiAyLjEuMSBCdWlsZCAzKSAgLS0+CiAgPGRlZnM+CiAgICA8c3R5bGU+CiAgICAgIC5zdDAgewogICAgICAgIGZpbGw6ICNmZmY7CiAgICAgIH0KCiAgICAgIC5zdDEgewogICAgICAgIGZpbGw6ICM1OTM2ZDg7CiAgICAgIH0KICAgIDwvc3R5bGU+CiAgPC9kZWZzPgogIDxnPgogICAgPGc+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0zMi44NCwzMDguODd2LTEyLjJjMC0xLjQzLjM5LTIuMTUsMS4xOC0yLjE1LDIuNjIsMCw0LjQ3LS42NSw1LjU2LTEuOTQsMS4wOS0xLjI5LDEuNjQtMy4zLDEuNjQtNi4wMnYtNTkuMDdjMC0xLjQzLjcyLTIuMTUsMi4xNS0yLjE1aDEzLjg3YzEuNDMsMCwyLjE1LjcyLDIuMTUsMi4xNXY1OS4xM2MwLDcuODUtMi4wOSwxMy44OC02LjI2LDE4LjA5LTQuMTgsNC4yMS0xMC4yMiw2LjMyLTE4LjE0LDYuMzItMS40MywwLTIuMTUtLjcyLTIuMTUtMi4xNVoiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTExOC4zNCwyMjUuMzNoMTMuOThjMS40MywwLDIuMTUuNzIsMi4xNSwyLjE1djYwLjc0YzAsMS40My0uNzIsMi4xNS0yLjE1LDIuMTVoLTEwLjdjLTEuMTgsMC0yLjAxLS41Ni0yLjQ3LTEuNjdsLTIuMzEtNS41NGMtMi41MSwyLjQtNS42MSw0LjM4LTkuMyw1Ljk0LTMuNjksMS41Ni03LjIyLDIuMzQtMTAuNTksMi4zNC01LjI3LDAtOS44OS0xLjItMTMuODctMy42cy03LjA2LTUuOC05LjI1LTEwLjE5Yy0yLjE5LTQuMzktMy4yOC05LjQ3LTMuMjgtMTUuMjR2LTM0Ljk0YzAtMS40My43Mi0yLjE1LDIuMTUtMi4xNWgxMy45OGMxLjQzLDAsMi4xNS43MiwyLjE1LDIuMTV2MzIuOWMwLDIuODcuNTMsNS4zOSwxLjU5LDcuNTUsMS4wNiwyLjE3LDIuNTQsMy44NCw0LjQ2LDUuMDNzNC4xNSwxLjc3LDYuNjksMS43N2MyLjY5LDAsNS4xNS0uNjQsNy4zOS0xLjkxLDIuMjQtMS4yNyw0LTIuOTUsNS4yOS01LjAzczEuOTQtNC4yOCwxLjk0LTYuNjF2LTMzLjdjMC0xLjQzLjcyLTIuMTUsMi4xNS0yLjE1WiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QwIiBkPSJNMTU1LjIyLDI4OS40M2MtNC4yOC0xLjctOC4yOS00LjItMTIuMDEtNy41LS41Ny0uNDYtLjg2LS45OC0uODYtMS41NiwwLS40Ni4yLS45NS41OS0xLjQ1bDcuMjYtOS4wOGMuNS0uNjEsMS4wMi0uOTEsMS41Ni0uOTEuMzksMCwuODguMiwxLjQ1LjU5LDIuNjIsMS45Nyw1LjIsMy40OSw3Ljc3LDQuNTcsMi41NiwxLjA4LDUuMTUsMS42MSw3Ljc3LDEuNjEsMS43OSwwLDMuMjMtLjM1LDQuMy0xLjA1LDEuMDctLjcsMS42MS0xLjY5LDEuNjEtMi45OCwwLS44Ni0uMzEtMS42NS0uOTQtMi4zN3MtMS43MS0xLjQ0LTMuMjUtMi4xOGMtMS41NC0uNzMtMy43My0xLjU5LTYuNTYtMi41NS01LjQxLTEuODMtOS44Ny00LjMyLTEzLjM4LTcuNDctMy41MS0zLjE1LTUuMjctNy40OS01LjI3LTEzLjAxLDAtMy41MS44Ny02Ljc3LDIuNjEtOS43OCwxLjc0LTMuMDEsNC4zOS01LjQ0LDcuOTYtNy4yOCwzLjU3LTEuODUsNy45NS0yLjc3LDEzLjE0LTIuNzcsMy41OCwwLDcuMjYuNzEsMTEuMDUsMi4xMiwzLjc4LDEuNDIsNy4xMiwzLjUyLDEwLjAyLDYuMzIuNS41Ljc1LDEsLjc1LDEuNSwwLC40My0uMjUuOTMtLjc1LDEuNWwtOC40OSw4Ljc2Yy0uNDcuNS0uOTcuNzUtMS41MS43NS0uNDcsMC0uOTctLjIxLTEuNS0uNjUtMS40Ny0xLjE4LTMuMDktMi4xNi00Ljg2LTIuOTMtMS43Ny0uNzctMy41NC0xLjE2LTUuMjktMS4xNnMtMy4yMi4zNC00LjE3LDEuMDJjLS45NS42OC0xLjQyLDEuNjEtMS40MiwyLjc5LDAsLjgyLjM1LDEuNTcsMS4wNSwyLjIzczEuODIsMS4zMywzLjM2LDEuOTljMS41NC42NiwzLjY5LDEuNDQsNi40NSwyLjM0LDUuOTEsMS45LDEwLjQ4LDQuNDQsMTMuNzEsNy42MywzLjIzLDMuMTksNC44NCw3LjUxLDQuODQsMTIuOTYsMCwzLjU1LS45MSw2Ljg5LTIuNzEsMTAuMDItMS44MSwzLjE0LTQuNDQsNS42Ny03LjksNy42MS0zLjQ2LDEuOTMtNy41NSwyLjktMTIuMjgsMi45LTUuMDksMC05Ljc3LS44NS0xNC4wNi0yLjU1WiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QwIiBkPSJNMjE2LjkzLDI5MC4zN2gtMTMuOThjLTEuNDMsMC0yLjE1LS43Mi0yLjE1LTIuMTV2LTQ1Ljk2aC01LjM4Yy0xLjQzLDAtMi4xNS0uNzItMi4xNS0yLjE1di0xMi42M2MwLTEuNDMuNzItMi4xNSwyLjE1LTIuMTVoNS4yN3YtMTEuNzJjMC0xLjMzLjY1LTIuMTEsMS45NC0yLjM3bDE0LjE0LTIuNzRjLjE0LS4wMy4zMi0uMDUuNTQtLjA1LjU3LDAsMS4wMi4xOCwxLjM0LjU0LjMyLjM2LjQ4Ljg0LjQ4LDEuNDV2MTQuODloMTAuMTFjMS40MywwLDIuMTUuNzIsMi4xNSwyLjE1djEyLjYzYzAsMS40My0uNzIsMi4xNS0yLjE1LDIuMTVoLTEwLjE2djQ1Ljk2YzAsMS40My0uNzIsMi4xNS0yLjE1LDIuMTVaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0yNjQuMjgsMjg3LjQyYy01LjE2LTMuMDQtOS4xOC03LjE1LTEyLjA3LTEyLjMxLTIuODgtNS4xNi00LjMzLTEwLjc5LTQuMzMtMTYuODhzMS4zNy0xMS44Myw0LjExLTE3LjAxYzIuNzQtNS4xOCw2LjU3LTkuMywxMS40OC0xMi4zNiw0LjkxLTMuMDYsMTAuNDgtNC42LDE2LjcyLTQuNiw2Ljc0LDAsMTIuNTgsMS40NSwxNy41Miw0LjM1LDQuOTQsMi45LDguNzIsNi45MiwxMS4zMiwxMi4wNCwyLjYsNS4xMywzLjksMTAuOTUsMy45LDE3LjQ3LDAsMS40My0uMDcsMi44NS0uMjEsNC4yNS0uMTQsMS4zMy0uOSwxLjk5LTIuMjYsMS45OWgtNDMuODFjMS4xOCwzLjU4LDMuMjEsNi4zOCw2LjA3LDguMzksMi44NywyLjAxLDYuMTMsMy4wMSw5Ljc4LDMuMDEsMi4zMywwLDQuNDMtLjMzLDYuMzItMSwxLjg4LS42NiwzLjcyLTEuNjIsNS41MS0yLjg4LjQ3LS4zNi45My0uNTQsMS40LS41NC41NywwLDEuMDkuMzIsMS41Ni45N2w2LjYxLDkuNDFjLjMyLjQ3LjQ4LjkxLjQ4LDEuMzQsMCwuNjEtLjI5LDEuMTUtLjg2LDEuNjEtMi45NywyLjMzLTYuMyw0LjEzLTkuOTcsNS40LTMuNjcsMS4yNy03LjYxLDEuOTEtMTEuOCwxLjkxLTYuNDksMC0xMi4zMS0xLjUyLTE3LjQ3LTQuNTdaTTI4OS43MSwyNDIuNzVjLTIuNDQtMS45LTUuNDEtMi44NS04LjkyLTIuODVzLTYuNDIuOTctOC45NSwyLjljLTIuNTMsMS45My00LjMxLDQuNjQtNS4zNSw4LjEyaDI4LjM4Yy0xLTMuNTUtMi43Mi02LjI3LTUuMTYtOC4xN1oiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MSIgZD0iTTM2Ny45LDIwNi4yNWgxMy45OGMxLjQzLDAsMi4xNS43MiwyLjE1LDIuMTV2NzkuODJjMCwxLjQzLS43MiwyLjE1LTIuMTUsMi4xNWgtMTAuN2MtMS4xOCwwLTIuMDEtLjU2LTIuNDctMS42N2wtMS4zNC0zLjIyYy00LjQ4LDQuMTktMTAuMTEsNi4yOS0xNi44OCw2LjI5LTYuMTMsMC0xMS43Ny0xLjUxLTE2LjkzLTQuNTQtNS4xNi0zLjAzLTkuMjUtNy4xMy0xMi4yNi0xMi4zMS0zLjAxLTUuMTgtNC41Mi0xMC44NS00LjUyLTE3LjAxczEuNTEtMTEuNzYsNC41NC0xNi45MWMzLjAzLTUuMTQsNy4xMi05LjIyLDEyLjI4LTEyLjIzLDUuMTYtMy4wMSwxMC43OS00LjUyLDE2Ljg4LTQuNTJzMTEuMDcsMS42MywxNS4yNyw0Ljg5di0yMC43NWMwLTEuNDMuNzItMi4xNSwyLjE1LTIuMTVaTTM1OC45NSwyNzIuMjNjMi40NS0xLjM4LDQuMzktMy4zLDUuODEtNS43NSwxLjQxLTIuNDUsMi4xMi01LjIyLDIuMTItOC4zcy0uNy01LjkyLTIuMS04LjQxYy0xLjQtMi40OS0zLjMyLTQuNDUtNS43NS01Ljg5LTIuNDQtMS40My01LjE0LTIuMTUtOC4xMi0yLjE1cy01LjY3LjcxLTguMDksMi4xMmMtMi40MiwxLjQyLTQuMzIsMy4zOC01LjcsNS44OS0xLjM4LDIuNTEtMi4wNyw1LjMyLTIuMDcsOC40NHMuNjgsNS45LDIuMDQsOC4zM2MxLjM2LDIuNDQsMy4yMyw0LjM1LDUuNjIsNS43MiwyLjM4LDEuMzgsNS4wOCwyLjA3LDguMDksMi4wN3M1LjY5LS42OSw4LjE0LTIuMDdaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik00MTIuNzEsMjkwLjM3aC0xMy45OGMtMS40MywwLTIuMTUtLjcyLTIuMTUtMi4xNXYtNjAuNzRjMC0xLjQzLjcyLTIuMTUsMi4xNS0yLjE1aDEzLjk4YzEuNDMsMCwyLjE1LjcyLDIuMTUsMi4xNXY2MC43NGMwLDEuNDMtLjcyLDIuMTUtMi4xNSwyLjE1WiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QxIiBkPSJNNDQ0LjEzLDI5MC4zN2gtMTMuOThjLTEuNDMsMC0yLjE1LS43Mi0yLjE1LTIuMTV2LTQ1Ljk2aC01LjM4Yy0xLjQzLDAtMi4xNS0uNzItMi4xNS0yLjE1di0xMi42M2MwLTEuNDMuNzItMi4xNSwyLjE1LTIuMTVoNS4yN3YtMTEuNzJjMC0xLjMzLjY1LTIuMTEsMS45NC0yLjM3bDE0LjE0LTIuNzRjLjE0LS4wMy4zMi0uMDUuNTQtLjA1LjU3LDAsMS4wMi4xOCwxLjM0LjU0LjMyLjM2LjQ4Ljg0LjQ4LDEuNDV2MTQuODloMTAuMTFjMS40MywwLDIuMTUuNzIsMi4xNSwyLjE1djEyLjYzYzAsMS40My0uNzIsMi4xNS0yLjE1LDIuMTVoLTEwLjE2djQ1Ljk2YzAsMS40My0uNzIsMi4xNS0yLjE1LDIuMTVaIi8+CiAgICA8L2c+CiAgICA8cGF0aCBjbGFzcz0ic3QwIiBkPSJNNDMuMjEsMjAwLjk4aDE0LjI0YzEuMTksMCwyLjE1Ljk2LDIuMTUsMi4xNXYxMi42M2MwLDEuMTktLjk2LDIuMTUtMi4xNSwyLjE1aC0xNC4yNGMtMS4xOSwwLTIuMTUtLjk2LTIuMTUtMi4xNXYtMTIuNjNjMC0xLjE5Ljk2LTIuMTUsMi4xNS0yLjE1WiIvPgogICAgPHBhdGggY2xhc3M9InN0MSIgZD0iTTM5OC42MiwyMDEuNDFoMTQuMjRjMS4xOSwwLDIuMTUuOTYsMi4xNSwyLjE1djEyLjYzYzAsMS4xOS0uOTYsMi4xNS0yLjE1LDIuMTVoLTE0LjI0Yy0xLjE5LDAtMi4xNS0uOTYtMi4xNS0yLjE1di0xMi42M2MwLTEuMTkuOTYtMi4xNSwyLjE1LTIuMTVaIi8+CiAgPC9nPgogIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik00NjEuNzUsMjcyLjI4aDE0LjI0YzEuMTksMCwyLjE1Ljk2LDIuMTUsMi4xNXYxMi42M2MwLDEuMTktLjk2LDIuMTUtMi4xNSwyLjE1aC0xNC4yNGMtMS4xOSwwLTIuMTUtLjk2LTIuMTUtMi4xNXYtMTIuNjNjMC0xLjE5Ljk2LTIuMTUsMi4xNS0yLjE1WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTQxLjYzIDg1LjY4KSByb3RhdGUoLTEwKSIvPgo8L3N2Zz4=" alt="JustEdit" /></a>
   </div>
 </div>
@@ -862,7 +992,7 @@
       <div class="label"><span class="draghandle" title="Drag to move this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></span><span class="pip"></span>Computer time</div>
       <div class="cardbtns">
         <div class="obs-wrap">
-          <button class="obsbtn">⬡ OBS</button>
+          <button class="obsbtn" title="Copy this card’s OBS Browser Source URL">⬡ OBS</button>
           <div class="obs-popup">
             <div class="obs-popup-title">OBS Browser Source URL</div>
             <div class="obs-row" data-url="?tool=clock&amp;obs=1">
@@ -872,7 +1002,7 @@
             </div>
           </div>
         </div>
-        <button class="iconbtn maxbtn" title="Maximize this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+        <button class="iconbtn scrbtn" title="Show this card on another screen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></button><button class="iconbtn maxbtn" title="Maximize this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
         <button class="iconbtn closebtn" title="Close this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
     </div>
@@ -892,15 +1022,15 @@
     <div class="cardhead">
       <div class="label"><span class="draghandle" title="Drag to move this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></span><span class="pip"></span><span class="t-name">Timer</span><span class="t-armed">Armed</span><span id="overtimeBadge" class="overtime-badge"> OVERTIME</span></div>
       <div class="cardbtns">
-        <button class="viewtog editbtn" title="Rename / recolour">✎ Edit</button>
+        <button class="viewtog editbtn" title="Rename, recolour — and for a timer, change its duration">✎ Edit</button>
         <label class="sound-sw" title="Timer sound on/off">
           <input type="checkbox" id="soundSwitch">
           <span class="sw-track"></span>
           <span class="sw-label">SOUND</span>
         </label>
-        <button class="viewtog viewbtn" id="timerView">◷ Dial</button>
+        <button class="viewtog viewbtn" id="timerView" title="Switch between the digital figure and the Gorgy dial">◷ Dial</button>
         <div class="obs-wrap">
-          <button class="obsbtn">⬡ OBS</button>
+          <button class="obsbtn" title="Copy this card’s OBS Browser Source URL">⬡ OBS</button>
           <div class="obs-popup">
             <div class="obs-popup-title">OBS Browser Source URL</div>
             <div class="obs-row" data-url="?tool=timer&amp;obs=1">
@@ -915,7 +1045,7 @@
             </div>
           </div>
         </div>
-        <button class="iconbtn maxbtn" title="Maximize this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+        <button class="iconbtn scrbtn" title="Show this card on another screen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></button><button class="iconbtn maxbtn" title="Maximize this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
         <button class="iconbtn closebtn" title="Close this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
     </div>
@@ -980,10 +1110,10 @@
     <div class="cardhead">
       <div class="label"><span class="draghandle" title="Drag to move this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></span><span class="pip"></span><span class="c-name">Stopwatch</span></div>
       <div class="cardbtns">
-        <button class="viewtog editbtn" title="Rename / recolour">✎ Edit</button>
-        <button class="viewtog viewbtn" id="chronoView">◷ Dial</button>
+        <button class="viewtog editbtn" title="Rename, recolour — and for a timer, change its duration">✎ Edit</button>
+        <button class="viewtog viewbtn" id="chronoView" title="Switch between the digital figure and the Gorgy dial">◷ Dial</button>
         <div class="obs-wrap">
-          <button class="obsbtn">⬡ OBS</button>
+          <button class="obsbtn" title="Copy this card’s OBS Browser Source URL">⬡ OBS</button>
           <div class="obs-popup">
             <div class="obs-popup-title">OBS Browser Source URL</div>
             <div class="obs-row" data-url="?tool=chrono&amp;obs=1">
@@ -998,7 +1128,7 @@
             </div>
           </div>
         </div>
-        <button class="iconbtn maxbtn" title="Maximize this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+        <button class="iconbtn scrbtn" title="Show this card on another screen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></button><button class="iconbtn maxbtn" title="Maximize this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
         <button class="iconbtn closebtn" title="Close this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
     </div>
@@ -1034,9 +1164,9 @@
           <span class="sw-track"></span>
           <span class="sw-label">SOUND</span>
         </label>
-        <button class="viewtog media-filter-btn" id="mSrcFilterBtn">☰ SOURCE FILTER</button>
+        <button class="viewtog media-filter-btn" id="mSrcFilterBtn" title="Choose which OBS sources Auto mode may pick, scene by scene">☰ SOURCE FILTER</button>
         <div class="obs-wrap">
-          <button class="obsbtn">⬡ OBS</button>
+          <button class="obsbtn" title="Copy this card’s OBS Browser Source URL">⬡ OBS</button>
           <div class="obs-popup">
             <div class="obs-popup-title">OBS Browser Source URL</div>
             <div class="obs-row" data-url="?tool=media&amp;obs=1">
@@ -1052,7 +1182,7 @@
           </div>
         </div>
               <button class="viewtog icon-btn" id="mSettingsBtn" title="OBS WebSocket settings"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
-        <button class="iconbtn maxbtn" title="Maximize this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+        <button class="iconbtn scrbtn" title="Show this card on another screen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></button><button class="iconbtn maxbtn" title="Maximize this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
         <button class="iconbtn closebtn" title="Close this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
     </div>
@@ -1077,7 +1207,7 @@
           <option value="__auto__">Auto (playing source)</option>
         </select>
         <button class="viewtog icon-btn" id="mRefreshBtn" title="Reload source list"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg></button>
-        <button class="media-go" id="mConnectBtn">Connect</button>
+        <button class="media-go" id="mConnectBtn" title="Connect to the OBS WebSocket server">Connect</button>
       </div>
       <div class="media-ws-err" id="mWsErr"></div>
     </div>
@@ -1158,6 +1288,12 @@
       <div class="sc-section">LAYOUT</div>
       <div class="sc-row"><kbd>☰</kbd><span>Drag a card by the grip left of its title</span></div>
       <div class="sc-row"><kbd>⇔</kbd><span>Drag between two cards to resize · double-click to even them out</span></div>
+      <div class="sc-section">SECOND SCREEN</div>
+      <div class="sc-note"><b>Screen projector</b> in the top bar sends the whole grid to another
+        display — the same cards in the same places, stripped of every control. The screen button
+        on a card sends that card alone, full size. Both count in step with this window.
+        Double-click the second window for full screen, <kbd>Esc</kbd> to leave it.</div>
+      <div class="sc-note">Hover any button to read what it does.</div>
       <div class="sc-section">MAXIMIZE</div>
       <div class="sc-row"><kbd>F1</kbd><span>Clock</span></div>
       <div class="sc-row"><kbd>F2</kbd><span>First timer</span></div>
@@ -1265,13 +1401,26 @@ const LS = {
  *    ?tool=timer&obs=1&dial=1
  *    ?tool=chrono&obs=1
  *    ?tool=media&obs=1
+ *
+ *  Second screen (opaque, no controls, driven by the control window):
+ *    ?tool=timer&screen=1&cid=<card id>
+ *    ?tool=chrono&screen=1&cid=<card id>
+ *    ?tool=clock&screen=1
+ *    ?tool=media&screen=1
  ********************************************/
 (function(){
   const p    = new URLSearchParams(window.location.search);
   const tool = p.get('tool');
   const obs  = p.has('obs') || p.get('obs')==='1';
+  /* A second-screen window reuses the OBS layout — one card, no controls — but
+     keeps an opaque background and its card name. */
+  const scr  = p.has('screen') || p.get('screen')==='1';
   if(tool) document.body.classList.add('tool-'+tool);
-  if(obs)  document.body.classList.add('obs-mode');
+  /* one card named  -> the OBS single-card layout, opaque
+     no card named   -> the whole grid, same shape, stripped of its controls */
+  if(obs || (scr && tool)) document.body.classList.add('obs-mode');
+  if(scr)  document.body.classList.add('screen-mode');
+  if(scr && !tool) document.body.classList.add('screen-grid');
   window._obsStartDial = p.has('dial') || p.get('dial')==='1';
 })();
 
@@ -1755,6 +1904,8 @@ function instOf(card){
 }
 function saveCards(){
   if(!xtBooted) return;
+  /* a second screen mirrors the control window: it must never write back */
+  if(document.body.classList.contains('screen-mode')) return;
   const out = Array.from(grid.children).filter(el=>el.classList.contains('card')).map(el=>{
     const type = cardType(el), inst = instOf(el);
     const o = {type};
@@ -1827,12 +1978,9 @@ function makeCard(type, cfg){
 }
 
 /* ---- closing a card ---- */
-function closeCard(card){
-  const type = cardType(card);
-  const lbl  = card.querySelector('.t-name,.c-name');
-  const kind = CARD_KINDS.find(k=>k.type===type);
-  const name = lbl ? lbl.textContent : (kind ? kind.label : 'this card');
-  if(!confirm('Close “'+name+'” ?\n\nYou can add it again from NEW CARD.')) return;
+/* Take a card off the grid. closeCard asks first; a second screen rebuilding
+   its layout to match the control window does not. */
+function detachCard(card){
   if(isMaximized(card)) setMaximized(null);
   const ti = TIMERS.findIndex(t=>t.card===card);
   if(ti>=0){
@@ -1843,6 +1991,14 @@ function closeCard(card){
   if(ci>=0) CHRONOS.splice(ci,1);
   card.remove();                       // singletons keep their listeners for later
   if(!activeTimer && TIMERS.length) setActiveTimer(TIMERS[0]);
+}
+function closeCard(card){
+  const type = cardType(card);
+  const lbl  = card.querySelector('.t-name,.c-name');
+  const kind = CARD_KINDS.find(k=>k.type===type);
+  const name = lbl ? lbl.textContent : (kind ? kind.label : 'this card');
+  if(!confirm('Close “'+name+'” ?\n\nYou can add it again from NEW CARD.')) return;
+  detachCard(card);
   saveCards();
   refreshNewCardBtn();
   if(window._topFitGrid)   window._topFitGrid();
@@ -1894,6 +2050,13 @@ function wireCard(card){
   card.querySelectorAll('.closebtn:not([data-wired])').forEach(b=>{
     b.dataset.wired='1';
     b.addEventListener('click', ()=> closeCard(card));
+  });
+  card.querySelectorAll('.scrbtn:not([data-wired])').forEach(b=>{
+    b.dataset.wired='1';
+    b.addEventListener('click', e=>{
+      e.stopPropagation();
+      if(window._topToggleScreen) window._topToggleScreen(card);
+    });
   });
   card.querySelectorAll('.obsbtn:not([data-wired])').forEach(btn=>{
     btn.dataset.wired='1';
@@ -2280,6 +2443,441 @@ window.addEventListener('resize', ()=> setTimeout(fitSoloDial, 60));
   });
 })();
 
+/* ================= SECOND SCREEN =================
+   Any card can be sent to another display. TOP! opens a second window showing
+   that card alone, with no controls, and keeps it in step with this one.
+
+   The two windows talk over the handle returned by window.open (postMessage),
+   which works even from a file:// page, with a BroadcastChannel as a second
+   route so a screen reloaded on its own can find its way back.
+
+   What travels is never the digits: for a timer it is the *deadline* on the
+   machine's wall clock, for a stopwatch the instant it was started. The second
+   window recomputes the display from its own clock on every frame, so it stays
+   smooth and exact to the millisecond even when a message is late or lost.
+   The OBS Media card is the exception — it reads in whole seconds, so its
+   rendered values are simply copied across. */
+(function(){
+  const PARAMS   = new URLSearchParams(location.search);
+  const IS_SCREEN= document.body.classList.contains('screen-mode');
+  const IS_OBS   = document.body.classList.contains('obs-mode') && !IS_SCREEN;
+  const CH_NAME  = 'top-second-screen';
+  const PUSH_MS  = 120;      // 8 pushes a second: far below what the eye needs,
+                             // because the far window does its own counting
+  let bc = null;
+  try{ bc = new BroadcastChannel(CH_NAME); }catch(e){}
+
+  const keyOf = card => cardType(card) + '|' + (card.dataset.cid || '');
+
+  /* ---------------- the control window ---------------- */
+  if(!IS_SCREEN && !IS_OBS){
+    const OPEN = new Map();               // key -> {win, card, ready}
+    const GRID_KEY = '*grid*';            // the screen showing every card
+
+    function screenUrl(card){
+      if(card === GRID_KEY) return location.origin + location.pathname + '?screen=1';
+      const type = cardType(card);
+      return location.origin + location.pathname
+           + '?tool=' + type + '&screen=1&cid=' + encodeURIComponent(card.dataset.cid || '');
+    }
+    /* everything the grid screen needs in one message: the shape, and every
+       card in the order they sit on the grid */
+    function gridSnapshot(){
+      const cards = Array.from(grid.children)
+        .filter(el => el.classList && el.classList.contains('card'));
+      return {
+        top:1, k:'state', key:GRID_KEY, type:'grid', at:Date.now(),
+        shape: window._topGridShapeNums ? window._topGridShapeNums() : null,
+        cards: cards.map(c=>{
+          const m = snapshot(c);
+          m.key = keyOf(c);
+          m.cid = c.dataset.cid || '';
+          return m;
+        })
+      };
+    }
+
+    function snapshot(card){
+      const type = cardType(card);
+      const m = {top:1, k:'state', key:keyOf(card), type:type, at:Date.now()};
+      const inst = instOf(card);
+      if(type === 'timer' && inst){
+        m.name = inst.name; m.color = inst.color;
+        m.total = inst.total; m.fired = inst.fired; m.running = inst.running;
+        m.dial = card.classList.contains('dialmode');
+        /* performance.now() is private to each document — convert the deadline
+           to wall-clock time, which both windows read the same way */
+        if(inst.running) m.endAt = Date.now() + (inst.end - performance.now());
+        else             m.remain = inst.remain;
+      } else if(type === 'chrono' && inst){
+        m.name = inst.name; m.color = inst.color;
+        m.running = inst.running;
+        m.dial = card.classList.contains('dialmode');
+        m.elapsed = inst.elapsed();
+      } else if(type === 'media' && window._topMediaSnap){
+        m.media = window._topMediaSnap();
+        m.dial = true;
+      }
+      return m;
+    }
+
+    /* Screens TOP! did not open itself — a bookmarked URL, or one that survived
+       a restart of this window — announce themselves and are served too. They
+       keep saying they are there, so a screen that is closed stops costing
+       anything after a few seconds. */
+    const WATCH = new Map();           // key -> last time that screen spoke
+    const WATCH_TTL = 12000;
+
+    function cardForKey(key){
+      const e = OPEN.get(key);
+      if(e && e.card && e.card.isConnected) return e.card;
+      const cut = key.indexOf('|');
+      const type = key.slice(0, cut), cid = key.slice(cut+1);
+      if(cid){
+        const c = grid.querySelector('.card[data-cid="'+CSS.escape(cid)+'"]');
+        if(c) return c;
+      }
+      return firstCardOfType(type);
+    }
+    function push(key){
+      let msg;
+      if(key === GRID_KEY){
+        msg = gridSnapshot();
+      } else {
+        const card = cardForKey(key);
+        if(!card) return;
+        msg = snapshot(card);
+      }
+      const e = OPEN.get(key);
+      if(e && e.win && !e.win.closed){ try{ e.win.postMessage(msg, '*'); }catch(err){} }
+      if(bc){ try{ bc.postMessage(msg); }catch(err){} }
+    }
+    setInterval(()=>{
+      const now = Date.now();
+      let closedOne = false;
+      OPEN.forEach((e,key)=>{
+        if(e.win && e.win.closed){ OPEN.delete(key); closedOne = true; return; }
+        push(key);
+      });
+      WATCH.forEach((seen,key)=>{
+        if(now - seen > WATCH_TTL){ WATCH.delete(key); return; }
+        if(!OPEN.has(key)) push(key);
+      });
+      if(closedOne) paint();
+    }, PUSH_MS);
+
+    /* A screen says hello on arrival and keeps a quiet heartbeat afterwards */
+    const heard = d => {
+      if(!d || !d.top) return;
+      if(d.k === 'hello'){ WATCH.set(d.key, Date.now()); push(d.key); }
+      else if(d.k === 'alive'){ WATCH.set(d.key, Date.now()); }
+    };
+    window.addEventListener('message', e=> heard(e.data));
+    if(bc) bc.addEventListener('message', e=> heard(e.data));
+
+    /* ---- placing the window on the other display ----
+       The Window Management API is the only way a page may put a window on a
+       screen it is not on. Chrome and Edge have it, behind a one-off permission
+       prompt; Safari and Firefox do not, and there the window opens where the
+       browser decides and is moved by hand. */
+    async function otherScreen(){
+      try{
+        if(!('getScreenDetails' in window)) return null;
+        if(!window.screen.isExtended) return null;
+        if(navigator.permissions){
+          try{
+            const st = await navigator.permissions.query({name:'window-management'});
+            if(st.state === 'denied') return null;
+          }catch(e){}
+        }
+        const d = await window.getScreenDetails();
+        return d.screens.find(sc => sc !== d.currentScreen) || null;
+      }catch(e){ return null; }
+    }
+
+    async function openScreen(card){
+      const key = (card === GRID_KEY) ? GRID_KEY : keyOf(card);
+      const ex  = OPEN.get(key);
+      if(ex && ex.win && !ex.win.closed){ try{ ex.win.focus(); }catch(e){} return; }
+
+      const sc  = await otherScreen();
+      const feat = sc
+        ? 'popup=1,left='+sc.availLeft+',top='+sc.availTop
+          + ',width='+sc.availWidth+',height='+sc.availHeight
+        : 'popup=1,width=1280,height=720';
+      let win = null;
+      try{ win = window.open(screenUrl(card), 'topscreen_'+key.replace(/\W/g,'_'), feat); }catch(e){}
+      if(!win){
+        showToast('The browser blocked the second window. Allow pop-ups for TOP! and try again.', true);
+        return;
+      }
+      if(sc){ try{ win.moveTo(sc.availLeft, sc.availTop);
+                   win.resizeTo(sc.availWidth, sc.availHeight); }catch(e){} }
+      OPEN.set(key, {win, card});
+      paint();
+      setTimeout(()=>push(key), 250);
+      setTimeout(()=>push(key), 900);
+    }
+    function closeScreen(card){
+      const key = (card === GRID_KEY) ? GRID_KEY : keyOf(card), e = OPEN.get(key);
+      if(e && e.win && !e.win.closed){ try{ e.win.close(); }catch(err){} }
+      OPEN.delete(key); paint();
+    }
+    function toggleScreen(card){
+      const e = OPEN.get((card === GRID_KEY) ? GRID_KEY : keyOf(card));
+      if(e && e.win && !e.win.closed) closeScreen(card); else openScreen(card);
+    }
+    function paint(){
+      document.querySelectorAll('.grid > .card').forEach(c=>{
+        const e = OPEN.get(keyOf(c));
+        const on = !!(e && e.win && !e.win.closed);
+        c.querySelectorAll('.scrbtn').forEach(b=>{
+          b.classList.toggle('act', on);
+          b.title = on ? 'Close the second screen showing this card'
+                       : 'Show this card on another screen';
+        });
+      });
+      const g = document.getElementById('screenBtn');
+      if(g){
+        const e = OPEN.get(GRID_KEY);
+        const on = !!(e && e.win && !e.win.closed);
+        g.classList.toggle('act', on);
+        g.title = on ? 'Screen projector — close the second screen'
+                     : 'Screen projector — every card on another screen, without the controls';
+      }
+    }
+    /* the control window going away takes its screens with it */
+    window.addEventListener('pagehide', ()=>{
+      OPEN.forEach(e=>{ try{ if(e.win && !e.win.closed) e.win.close(); }catch(err){} });
+    });
+
+    window._topToggleScreen = toggleScreen;
+    window._topPaintScreenBtns = paint;
+    window._topToggleGridScreen = ()=> toggleScreen(GRID_KEY);
+    const gbtn = document.getElementById('screenBtn');
+    if(gbtn) gbtn.addEventListener('click', ()=> toggleScreen(GRID_KEY));
+    document.querySelectorAll('.scrbtn:not([data-wired])').forEach(b=>{
+      b.dataset.wired = '1';
+      const card = b.closest('.card');
+      b.addEventListener('click', e=>{ e.stopPropagation(); toggleScreen(card); });
+    });
+    return;
+  }
+
+  /* ---------------- the second-screen window ---------------- */
+  if(!IS_SCREEN) return;
+  const IS_GRID  = document.body.classList.contains('screen-grid');
+  const MY_KEY   = IS_GRID ? '*grid*'
+                           : (PARAMS.get('tool')||'') + '|' + (PARAMS.get('cid')||'');
+  let lastAt = 0;
+
+  function target(){
+    return document.querySelector('.grid > .card.solo-on');
+  }
+  const keyOfCard = c => cardType(c) + '|' + (c.dataset.cid || '');
+
+  /* The grid screen holds the same cards as the control window. When one is
+     added, closed or moved over there, this rebuilds to match — the cards
+     themselves are the app's own, so they draw exactly as they always do. */
+  function syncGrid(m){
+    if(!Array.isArray(m.cards)) return;
+    const want = m.cards.map(c=>c.key).join(',');
+    const have = Array.from(grid.children)
+      .filter(el=>el.classList && el.classList.contains('card'))
+      .map(keyOfCard).join(',');
+    if(want !== have){
+      Array.from(grid.children)
+        .filter(el=>el.classList && el.classList.contains('card'))
+        .forEach(detachCard);
+      m.cards.forEach(c=>{
+        makeCard(c.type, {id:c.cid || undefined, name:c.name, color:c.color,
+                          dur:c.total, sound:false, dial:c.dial});
+      });
+      if(window._topRetagCards) window._topRetagCards();
+    }
+    if(m.shape && window._topSetGridShape) window._topSetGridShape(m.shape.cols, m.shape.rows);
+    m.cards.forEach(c=>{
+      const card = grid.querySelector('.card[data-cid="'+CSS.escape(c.cid||'')+'"]')
+                || Array.from(grid.children).find(el=>el.classList &&
+                     el.classList.contains('card') && keyOfCard(el)===c.key)
+                || firstCardOfType(c.type);
+      if(card) applyCard(card, c);
+    });
+  }
+
+  function apply(m){
+    lastAt = Date.now();
+    document.body.classList.remove('sc-stale');
+    if(m.type === 'grid'){ syncGrid(m); return; }
+    const card = target(); if(!card) return;
+    applyCard(card, m);
+  }
+  function applyCard(card, m){
+    const inst = instOf(card);
+    if(m.type === 'timer' && inst){
+      if(m.name  && m.name  !== inst.name ){ inst.name = m.name; if(inst.el.name) inst.el.name.textContent = m.name; }
+      if(m.color && m.color !== inst.color){ inst.color = m.color; card.style.setProperty('--tcol', m.color); }
+      inst.sound = false;                       // the far screen never speaks
+      inst.total = m.total || 0;
+      inst.fired = !!m.fired;
+      if(m.running){
+        inst.running = true;
+        /* wall clock back to this document's own clock */
+        inst.end = performance.now() + (m.endAt - Date.now());
+      } else {
+        inst.running = false;
+        inst.remain  = m.remain || 0;
+      }
+      card.classList.toggle('dialmode', !!m.dial);
+    } else if(m.type === 'chrono' && inst){
+      if(m.name  && m.name  !== inst.name ){ inst.name = m.name; if(inst.el.name) inst.el.name.textContent = m.name; }
+      if(m.color && m.color !== inst.color){ inst.color = m.color; card.style.setProperty('--tcol', m.color); }
+      if(m.running){ inst.running = true;  inst.acc = 0; inst.start = performance.now() - (m.elapsed||0); }
+      else         { inst.running = false; inst.acc = m.elapsed || 0; }
+      card.classList.toggle('dialmode', !!m.dial);
+    } else if(m.type === 'media' && m.media && window._topMediaApply){
+      /* on its own screen the dial says it all; on the grid the card keeps the
+         shape it has in the control window */
+      if(!IS_GRID) card.classList.add('dialmode');
+      window._topMediaApply(m.media);
+    }
+  }
+  const onMsg = d => { if(d && d.top && d.k === 'state' && d.key === MY_KEY) apply(d); };
+  window.addEventListener('message', e=> onMsg(e.data));
+  if(bc) bc.addEventListener('message', e=> onMsg(e.data));
+
+  function hello(){
+    const m = {top:1, k:'hello', key:MY_KEY};
+    try{ if(window.opener) window.opener.postMessage(m, '*'); }catch(e){}
+    if(bc){ try{ bc.postMessage(m); }catch(e){} }
+  }
+  hello();
+  const helloT = setInterval(()=>{ if(!lastAt) hello(); else clearInterval(helloT); }, 700);
+  /* heartbeat: tells the control window this screen is still there, so it keeps
+     sending — and stops a few seconds after the screen is closed */
+  setInterval(()=>{
+    const m = {top:1, k:'alive', key:MY_KEY};
+    try{ if(window.opener) window.opener.postMessage(m, '*'); }catch(e){}
+    if(bc){ try{ bc.postMessage(m); }catch(e){} }
+  }, 4000);
+  /* the clock needs nobody: it reads the same machine time */
+  const CLOCK_ONLY = !IS_GRID && (PARAMS.get('tool')||'') === 'clock';
+  if(CLOCK_ONLY) lastAt = Date.now();
+  setInterval(()=>{
+    if(CLOCK_ONLY) return;
+    document.body.classList.toggle('sc-stale', !lastAt || Date.now()-lastAt > 2500);
+  }, 600);
+
+  /* The digits take the screen. A fixed size cannot do that: 21:59 and
+     00:00:00.00 are not the same width, so the size is measured and corrected
+     whenever the text changes shape or the window is resized. */
+  (function(){
+    let lastSig = '', lastW = 0, lastH = 0;
+    const shown = el => { if(!el) return null; const r = el.getBoundingClientRect();
+                          return (r.width && r.height) ? r : null; };
+    /* the element actually on screen: the big flat figure, or the one inside
+       the round dial when the card is in dial view */
+    function readout(card){
+      if(!card) return null;
+      const d = card.querySelector('.dial-sm .digits');
+      if(shown(d)) return d;
+      const f = card.querySelector('.readout');
+      return shown(f) ? f : null;
+    }
+    function cards(){
+      if(!IS_GRID) return [target()].filter(Boolean);
+      return Array.from(grid.children).filter(el=>el.classList && el.classList.contains('card'));
+    }
+    function fitOne(el){
+      const r = el.getBoundingClientRect();
+      if(!r.width || !r.height) return;
+      const cur  = parseFloat(getComputedStyle(el).fontSize) || 100;
+      const wrap = el.closest('.dial-wrap');
+      let next;
+      if(wrap){
+        /* inside the dial: the figure has to stay within the ring, so scale it
+           until its own corners sit on a slightly smaller circle */
+        const wr = wrap.getBoundingClientRect();
+        const R  = wr.width * 0.415 * 0.88;
+        const half = Math.hypot(r.width/2, r.height/2) || 1;
+        next = Math.max(14, cur * (R/half));
+      } else {
+        /* the box the figure lives in keeps its size whatever the figure does,
+           so one measurement is enough */
+        const box = el.closest('.flat-view') || el.parentElement;
+        const br  = box ? box.getBoundingClientRect() : null;
+        const availW = (br && br.width  ? br.width  : innerWidth)  * 0.92;
+        const availH = (br && br.height ? br.height : innerHeight) * (IS_GRID ? 0.78 : 0.62);
+        const k = Math.min(availW/r.width, availH/r.height);
+        next = Math.max(16, cur * k);
+      }
+      /* the stylesheet sets this size with !important, so the measured
+         correction has to be set the same way or it is ignored */
+      if(Math.abs(next-cur) > 1) el.style.setProperty('font-size', next.toFixed(1)+'px', 'important');
+    }
+    /* a round dial fills the box left to it, which the flex layout already
+       measured — so this settles in one pass */
+    function fitDial(card){
+      const view = card.querySelector('.dial-view');
+      const dial = card.querySelector('.dial-sm');
+      if(!view || !dial) return;
+      const r = view.getBoundingClientRect();
+      if(!r.width || !r.height) return;
+      const size = Math.max(60, Math.min(r.width * 0.96, r.height * 0.96));
+      card.style.setProperty('--gdial', Math.round(size) + 'px');
+    }
+    function fit(){
+      cards().forEach(c=>{
+        if(IS_GRID) fitDial(c);
+        const el = readout(c); if(el) fitOne(el);
+      });
+      if(IS_GRID && window._topScaleClock) window._topScaleClock();
+      lastW = innerWidth; lastH = innerHeight;
+    }
+    function tick(){
+      /* refit when a figure changes shape (05:00 → 1:04:59), when a card is
+         added or removed, or when the window changes size */
+      const sig = cards().map(c=>{
+        const el = readout(c);
+        return el ? (el.textContent.length + el.className + Math.round(c.getBoundingClientRect().width)) : '-';
+      }).join('/');
+      if(sig !== lastSig || innerWidth !== lastW || innerHeight !== lastH){
+        lastSig = sig; fit();
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+    window.addEventListener('resize', ()=> setTimeout(fit, 60));
+    document.addEventListener('fullscreenchange', ()=> setTimeout(fit, 120));
+  })();
+
+  /* Fullscreen: try straight away — the window was opened by a click, which is
+     enough in some browsers — and offer a single button when it is refused. */
+  const fsBtn = document.createElement('button');
+  fsBtn.className = 'sc-fs';
+  fsBtn.textContent = '⤢ Fullscreen';
+  document.addEventListener('DOMContentLoaded', ()=> document.body.appendChild(fsBtn));
+  if(document.readyState !== 'loading') document.body.appendChild(fsBtn);
+  const goFs = () => document.documentElement.requestFullscreen &&
+                     document.documentElement.requestFullscreen();
+  fsBtn.addEventListener('click', ()=>{ try{ goFs(); }catch(e){} });
+  document.addEventListener('dblclick', ()=>{
+    try{ document.fullscreenElement ? document.exitFullscreen() : goFs(); }catch(e){}
+  });
+  function paintFs(){ fsBtn.classList.toggle('hidden', !!document.fullscreenElement); }
+  document.addEventListener('fullscreenchange', paintFs);
+  setTimeout(()=>{ try{ const r = goFs(); if(r && r.catch) r.catch(()=>{}); }catch(e){} paintFs(); }, 120);
+  /* out of the way once the show starts */
+  let hideT = null;
+  const nudge = () => {
+    fsBtn.classList.remove('hidden');
+    clearTimeout(hideT);
+    hideT = setTimeout(()=>{ if(!document.fullscreenElement) fsBtn.classList.add('hidden'); }, 4000);
+  };
+  ['mousemove','mousedown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev, nudge));
+  nudge();
+})();
+
 /* ================= SCREEN WAKE LOCK =================
    Asks the OS not to dim or sleep the screen while TOP! is on show. The lock
    is dropped by the browser whenever the tab is hidden, so it is re-taken on
@@ -2288,7 +2886,12 @@ window.addEventListener('resize', ()=> setTimeout(fitSoloDial, 60));
 (function(){
   const btn = document.getElementById('wakeBtn');
   if(!btn) return;
-  if(document.body.classList.contains('obs-mode')){ btn.style.display='none'; return; }
+  const onScreen = document.body.classList.contains('screen-mode');
+  /* A second screen is exactly the display that must not go dark, so the lock
+     runs there too — it just has no button to press. An OBS Browser Source has
+     no screen of its own and skips the whole thing. */
+  if(onScreen) btn.style.display='none';
+  else if(document.body.classList.contains('obs-mode')){ btn.style.display='none'; return; }
 
   const supported = ('wakeLock' in navigator);
   let lock = null;
@@ -2297,10 +2900,10 @@ window.addEventListener('resize', ()=> setTimeout(fitSoloDial, 60));
   function paint(){
     btn.classList.toggle('act', !!lock);
     btn.title = !supported
-      ? 'Keep the screen awake — not supported by this browser'
-      : (lock ? 'Screen kept awake — click to allow sleep'
-              : (want ? 'Waiting for permission to keep the screen awake — click the page'
-                      : 'Screen may sleep — click to keep it awake'));
+      ? 'Stay awake — not supported by this browser'
+      : (lock ? 'Stay awake is on — click to let the screen sleep'
+              : (want ? 'Stay awake — waiting for permission, click anywhere on the page'
+                      : 'Stay awake is off — the screen may go dark'));
   }
   if(!supported){ btn.disabled = true; paint(); return; }
 
@@ -3078,7 +3681,10 @@ if(document.body.classList.contains('obs-mode')){
     if(!wrap) return;
     const w = wrap.getBoundingClientRect().width;
     if(!w) return;
-    const fs = Math.max(15, Math.min(90, w*0.155));
+    /* a second screen is read from across the room, so the ceiling that keeps
+       the figure tidy in a grid card is lifted there */
+    const cap = document.body.classList.contains('screen-mode') ? 150 : 90;
+    const fs = Math.max(15, Math.min(cap, w*0.155));
     mTdial.style.setProperty('--dlfs', fs.toFixed(1)+'px');
 
     /* The scene name sits under the digits, off the centre of the dial, so the
@@ -3104,9 +3710,119 @@ if(document.body.classList.contains('obs-mode')){
 
   mIdle();
 
+  /* A second screen mirrors what this card already shows rather than opening a
+     second connection to OBS: the countdown reads in whole seconds, so copying
+     the rendered values eight times a second is exact and costs nothing. */
+  window._topMediaSnap = () => ({
+    dg:  mDlDigs.textContent,
+    sb:  mSbScene.textContent,
+    cap: mCapDialEl.textContent,
+    off: mRing.style.strokeDashoffset,
+    col: mDlDigs.style.color,
+    cls: mTdial.className,
+    stby:mDlDigs.classList.contains('sb-standby'),
+    /* the text panels too: on the grid screen the card keeps them */
+    nm:  mMediaNm.textContent,  nmc: mMediaNm.className,
+    sc:  mSceneNm.textContent,
+    el:  mElapsed.textContent,
+    rm:  mRemaing.textContent,  rms: mRemaing.classList.contains('sb-standby'),
+    rmc: mRemaing.style.color,
+    bar: mPbarFill.style.width
+  });
+  window._topMediaApply = o => {
+    if(!o) return;
+    mDlDigs.textContent  = o.dg  || '';
+    mSbScene.textContent = o.sb  || '';
+    mCapDialEl.textContent = o.cap || '';
+    mRing.style.strokeDashoffset = o.off || M_RING_C;
+    mDlDigs.style.color  = o.col || '';
+    if(o.cls) mTdial.className = o.cls;
+    mDlDigs.classList.toggle('sb-standby', !!o.stby);
+    if(o.nm !== undefined){
+      mMediaNm.textContent = o.nm; mMediaNm.className = o.nmc || 'np-val';
+      mSceneNm.textContent = o.sc || '—';
+      mElapsed.textContent = o.el || '--:--:--';
+      mRemaing.textContent = o.rm || '--:--:--';
+      mRemaing.style.color = o.rmc || '';
+      mRemaing.classList.toggle('sb-standby', !!o.rms);
+      mPbarFill.style.width = o.bar || '0%';
+    }
+    mScaleDial();
+  };
+
   /* Auto-connect when a configuration was saved previously — so an OBS Browser
      Source (?tool=media) comes back online on its own after a restart. */
-  if(mHasSavedCfg) setTimeout(mConnect, 400);
+  if(mHasSavedCfg && !document.body.classList.contains('screen-mode')) setTimeout(mConnect, 400);
+})();
+
+/* ================= HOVER TOOLTIPS =================
+   Every control says what it does. The text is the element's own title, moved
+   out of the way the first time it is hovered so the browser's own tooltip does
+   not double up — and picked up again whenever a module rewrites it, which is
+   how the projector and stay-awake buttons report their state. */
+(function(){
+  if(document.body.classList.contains('obs-mode')) return;   // nothing to hover
+  const SEL = '.topbar [title], .topbar [data-tip], .cardhead [title], .cardhead [data-tip],'
+            + '.card button[title], .card button[data-tip], .card label[title], .card label[data-tip],'
+            + '.gridsize [title], .vol-wrap[title]';
+  let tip = null, cur = null, showT = null;
+
+  function el(){
+    if(!tip){
+      tip = document.createElement('div');
+      tip.id = 'tiptip';
+      document.body.appendChild(tip);
+    }
+    return tip;
+  }
+  function text(node){
+    const t = node.getAttribute('title');
+    if(t){ node.dataset.tip = t; node.removeAttribute('title'); }
+    return node.dataset.tip || '';
+  }
+  function place(node){
+    const t = el(), r = node.getBoundingClientRect();
+    t.style.left = '0px'; t.style.top = '0px';      // measure unclamped
+    const tr = t.getBoundingClientRect();
+    let x = r.left + r.width/2 - tr.width/2;
+    let y = r.bottom + 9;
+    if(y + tr.height > innerHeight - 8) y = r.top - tr.height - 9;
+    x = Math.max(8, Math.min(x, innerWidth - tr.width - 8));
+    t.style.left = Math.round(x)+'px';
+    t.style.top  = Math.round(Math.max(8, y))+'px';
+  }
+  function hide(){
+    clearTimeout(showT); cur = null;
+    if(tip) tip.classList.remove('show');
+  }
+  function show(node){
+    const msg = text(node);
+    if(!msg){ hide(); return; }
+    cur = node;
+    const t = el();
+    t.textContent = msg;
+    place(node);
+    t.classList.add('show');
+  }
+  document.addEventListener('mouseover', e=>{
+    const node = e.target.closest ? e.target.closest(SEL) : null;
+    if(!node || node === cur) return;
+    clearTimeout(showT);
+    /* a short delay so running the mouse along the bar does not flash */
+    const wait = (tip && tip.classList.contains('show')) ? 0 : 130;
+    showT = setTimeout(()=> show(node), wait);
+    cur = node;
+  });
+  document.addEventListener('mouseout', e=>{
+    const node = e.target.closest ? e.target.closest(SEL) : null;
+    if(node && node === cur && !node.contains(e.relatedTarget)) hide();
+  });
+  /* keyboard users get it too, and a click should not leave it hanging */
+  document.addEventListener('focusin',  e=>{ const n=e.target.closest&&e.target.closest(SEL); if(n) show(n); });
+  document.addEventListener('focusout', hide);
+  document.addEventListener('mousedown', hide);
+  window.addEventListener('blur', hide);
+  window.addEventListener('scroll', hide, true);
 })();
 
 /* ===== TOAST — short message for layout errors ===== */
@@ -3378,8 +4094,17 @@ function showToast(msg, isError){
   window.addEventListener('orientationchange', ()=>{ setTimeout(onViewportChange, 60); setTimeout(onViewportChange, 350); });
   document.addEventListener('fullscreenchange', ()=> setTimeout(apply, 60));
   window._topApplyGrid    = apply;
+  /* used by a second screen to take the control window's shape */
+  window._topSetGridShape = (c,r)=>{
+    if(!cfg) return;
+    cfg.cols = clamp(c,1,8); cfg.rows = clamp(r,1,6); fitShape(cfg);
+    shapes[orient()] = {cols:cfg.cols, rows:cfg.rows};
+    cIn.value = cfg.cols; rIn.value = cfg.rows;
+    buildSplitters(); apply();
+  };
   window._topGridCapacity = () => cfg.cols * cfg.rows;
   window._topGridShape    = () => cfg.cols + ' × ' + cfg.rows;
+  window._topGridShapeNums= () => cfg ? {cols:cfg.cols, rows:cfg.rows} : null;
   window._topGridOrient   = orient;
   window._topResetTracks  = () => { store[shapeId()] = {cols:ones(cfg.cols), rows:ones(cfg.rows)}; saveWeights(); apply(); };
 
@@ -3431,7 +4156,11 @@ function showToast(msg, isError){
   const tool = p.get('tool');
   const MAP = {clock:'clock', timer:'timer', chrono:'chrono', media:'media'};
   if(tool && MAP[tool]){
-    const target = firstCardOfType(MAP[tool]);
+    /* a second screen names the exact card it mirrors; everything else takes
+       the first card of that kind, as an OBS source always has */
+    const cid = p.get('cid');
+    const target = (cid && grid.querySelector('.card[data-cid="'+CSS.escape(cid)+'"]'))
+                || firstCardOfType(MAP[tool]);
     if(target) target.classList.add('solo-on');
   }
   refreshMaxIcons();
