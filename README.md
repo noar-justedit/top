@@ -20,7 +20,8 @@ Clock, stopwatch, countdown timer and OBS media countdown for live event product
 - **Cards you add and remove** — `+ NEW CARD` adds a timer, a stopwatch or the OBS Media Countdown; every card has a close button and a maximize button. Type the grid shape you want (`3 × 2`, `4 × 1`…) in the top bar and the rows share the screen height. Drag & drop reordering between any two cards. Everything is remembered between sessions
 - **OBS integration** — per-tool Browser Source URLs with transparent background
 - **Stream Deck / Bitfocus Companion** — full control via keyboard shortcuts, no plugin needed
-- **Screen stays awake** — `☀ AWAKE` in the top bar asks the machine not to dim or sleep while TOP! is on screen
+- **Second screen** — a screen projector button puts your whole grid on another display, stripped of every control; a button on each card sends that card alone, full size. Both stay in step with the control window
+- **Screen stays awake** — **Stay awake** (the cup icon in the top bar) asks the machine not to dim or sleep while TOP! is on screen
 - **Fully offline** — all assets embedded, Clock / Stopwatch / Timer work with no internet connection
 
 ---
@@ -58,6 +59,17 @@ Hold the on-screen `+` or `−` button to run the value up or down; it speeds up
 
 ---
 
+## The Top Bar
+
+Left to right, in the order you use it: **GRID**, **`+ NEW CARD`**, then full screen, screen
+projector, stay awake and keyboard shortcuts as icons, then the master volume.
+
+Hover any control and it says what it does — and, for the icons, what state it is in: whether
+the screen keeping was actually granted, whether a projector window is open, why `+ NEW CARD`
+is refusing to add a seventh card to a 3 × 2 grid.
+
+---
+
 ## Cards
 
 TOP! opens on a 2 × 2 grid: **Clock**, **Timer**, **Stopwatch** and **OBS Media Countdown**.
@@ -67,6 +79,53 @@ Click **`+ NEW CARD`** in the top bar to add one — a timer, a stopwatch, or th
 Every card carries three buttons: **⬡ OBS** for its Browser Source URL, **maximize** to give it the whole page, and **close** (with a confirmation). Anything you close comes back from `+ NEW CARD` — including the clock, which is offered only when there is none on the grid.
 
 The grid holds exactly `columns × rows` cards, so adding a fifth card to a 2 × 2 means enlarging the grid first.
+
+## Second Screen
+
+**Screen projector** in the top bar opens a second window carrying your whole grid: the same
+cards, in the same places, in the same shape — with everything you press taken away. No card
+buttons, no START / PAUSE / RESET, no `+` `−`, no presets, no sound switches, no OBS settings,
+no drag handles, no splitters. The card name, its colour, and the figure.
+
+Because the controls no longer take any room, the figures take it: each card measures what it
+has left and sizes its display to match. Each card also keeps **the view you chose in the
+control window** — digital or Gorgy dial, card by card, followed live if you switch one
+mid-show. Change the grid shape, add a card, close one, rename or recolour a timer: the second
+screen reports it.
+
+The **screen button on a card** does the other job — that card alone on another display, big
+figures, its name, its colour. It is what the speaker or the room watches. Both modes can run
+at once, on two different displays.
+
+**How they stay together.** What crosses between the windows is not the digits but the
+deadline, read on the machine's own clock — the second window does its own counting and
+corrects itself eight times a second, so a late or lost message changes nothing on screen.
+Measured agreement: under 10 ms, including on a 4K display.
+
+**Placing the window.** On Chrome and Edge, TOP! can ask the system where your displays are and
+open the window straight onto the second one — the browser asks permission the first time.
+Safari and Firefox have no such API: the window opens normally, you drag it onto the other
+display and double-click it for full screen. The browser reopens it in the same place next time.
+
+A second screen keeps itself awake on its own. If it stops hearing the control window it dims
+rather than freeze on a number that is no longer true, and closing the control window closes
+its screens with it.
+
+A screen is also a plain URL, so you can bookmark it or reopen it by hand and it will
+re-attach on its own:
+
+| What | URL |
+|---|---|
+| The whole grid | `?screen=1` |
+| Clock | `?tool=clock&screen=1` |
+| Timer | `?tool=timer&screen=1&cid=…` |
+| Stopwatch | `?tool=chrono&screen=1&cid=…` |
+| OBS Media Countdown | `?tool=media&screen=1` |
+
+> This works between windows of the same browser on the same machine. It does not reach
+> an OBS Browser Source, which is a separate browser — those stay independent instances.
+
+---
 
 ## Multiple Timers and Stopwatches
 
@@ -84,7 +143,7 @@ Use **`✎ EDIT`** on a timer or a stopwatch card to rename and recolour it — 
 
 ## Keeping the screen awake
 
-`☀ AWAKE` in the top bar asks the operating system not to dim or put the display to sleep while TOP! is on screen. It is on by default and the choice is remembered.
+**Stay awake** (the cup icon in the top bar) asks the operating system not to dim or put the display to sleep while TOP! is on screen. It is on by default and the choice is remembered.
 
 It uses the browser's own Screen Wake Lock — no permission dialog, no extension. The lock is released whenever the tab goes to the background and taken again when you come back to it. Chrome, Edge, Brave, Firefox and Safari 16.4 and later (iPad and iPhone included) support it; on an older browser the button is greyed out.
 
@@ -116,6 +175,7 @@ A card too short for its content **shrinks what is inside** rather than hiding i
 - **Drag** the space between two columns or two rows to resize them; **double-click** it to even that axis out
 - **Maximize** shows a single card full-page; press `Esc` or click the button again to return to the grid — the clock and the round dials are sized on the room actually left on screen, so nothing is ever cut off, portrait or landscape
 - **Close** removes a card from the grid, after a confirmation
+- **Second screen** sends the whole grid, or one card, to another display, in step with this window
 
 All of this is saved in the browser and restored on next load.
 
@@ -143,7 +203,10 @@ Each tool can run as a standalone transparent Browser Source in OBS Studio. Clic
 
 Each extra timer has its own **⬡ OBS** button that builds the right URL for you — the name, colour and duration travel in the URL, because a Browser Source is a separate browser and cannot read this window's saved timers.
 
-> Each Browser Source is an independent instance of TOP!. A timer started in your control window does not drive the timer shown in an OBS Browser Source — control each one where it runs. Cross-window synchronisation is planned.
+> Each Browser Source is an independent instance of TOP!. A timer started in your control
+> window does not drive the timer shown in an OBS Browser Source — control each one where
+> it runs. For a display you drive from the control window, use **Second screen** instead:
+> it is a browser window, not an OBS source, and it stays in step.
 
 ### OBS Media Countdown setup
 
