@@ -2,3 +2,4 @@ node_modules/
 release-notes/
 private/
 .DS_Store
+CLAUDE.md
