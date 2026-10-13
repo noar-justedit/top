@@ -1,6 +1,6 @@
 {
   "name": "top",
-  "version": "2.8.0",
+  "version": "2.9.0",
   "private": true,
   "description": "TOP! — Live Event Time Control. Single-file HTML app; this package exists only to run the test suites.",
   "scripts": {

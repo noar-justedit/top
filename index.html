@@ -159,6 +159,25 @@
   .grid-splitter.row{left:0;right:0;height:16px;margin-top:-8px;cursor:row-resize;z-index:60;}
   .grid-splitter:hover,.grid-splitter.active{background:rgba(255,176,0,.16);}
   body[class*="tool-"] .grid-splitter,body.obs-mode .grid-splitter{display:none !important;}
+  /* A card may cover several cells (a layout picked from the snap bar, or a
+     card stretched into the empty cells below it). Each card is placed by an
+     inline grid-column / grid-row; a maximized card must ignore that. */
+  body:not(.obs-mode)[class*="tool-"] .grid > .card{grid-column:auto !important;grid-row:auto !important;}
+
+  /* Snap layouts — shown while a card is dragged by its handle, as in Windows.
+     Each thumbnail is one layout for the cards on screen; dropping the card on
+     a zone puts it there and the others fill the rest in their current order. */
+  .snapbar{position:fixed;top:10px;left:50%;transform:translate(-50%,-14px);z-index:9000;
+    display:flex;flex-wrap:wrap;justify-content:center;gap:10px;width:max-content;max-width:96vw;box-sizing:border-box;
+    padding:12px;border-radius:14px;background:#141419f2;border:1px solid var(--panel-edge);
+    box-shadow:0 18px 50px #000a;opacity:0;pointer-events:none;
+    transition:opacity .15s,transform .15s;}
+  .snapbar.open{opacity:1;transform:translate(-50%,0);pointer-events:auto;}
+  .snap-lay{display:grid;gap:4px;width:96px;height:60px;padding:4px;border-radius:8px;
+    background:#0d0d11;border:1px solid #2a2a32;}
+  .snap-zone{border-radius:4px;background:#2a2a32;border:1px solid #3a3a44;transition:background .08s;}
+  .snap-zone.over{background:var(--amber);border-color:var(--amber);}
+  body.screen-mode .snapbar,body.obs-mode .snapbar{display:none !important;}
   /* Portrait is a grid like any other now — it simply has its own remembered
      shape, applied on rotation. */
 
@@ -962,7 +981,7 @@
 <div class="topbar">
   <div class="brand">
     <span class="dot"></span>
-    <div class="brand-txt"><h1>TOP!</h1><span class="sub">Live Event Time Control · v2.8.0</span></div>
+    <div class="brand-txt"><h1>TOP!</h1><span class="sub">Live Event Time Control · v2.9.0</span></div>
   </div>
   <div class="brand-right">
     <div class="gridsize" title="Grid layout — columns × rows. The rows share the screen height.">
@@ -989,7 +1008,7 @@
   <!-- CLOCK -->
   <section class="card" id="clockCard" data-type="clock">
     <div class="cardhead">
-      <div class="label"><span class="draghandle" title="Drag to move this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></span><span class="pip"></span>Computer time</div>
+      <div class="label"><span class="draghandle" title="Drag onto another card to swap them · drag to the top of the window for layouts"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></span><span class="pip"></span>Computer time</div>
       <div class="cardbtns">
         <div class="obs-wrap">
           <button class="obsbtn" title="Copy this card’s OBS Browser Source URL">⬡ OBS</button>
@@ -1020,7 +1039,7 @@
   <!-- TIMER -->
   <section class="card t-card" id="timerCard" data-type="timer" data-tid="main" style="--tcol:#19e36b">
     <div class="cardhead">
-      <div class="label"><span class="draghandle" title="Drag to move this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></span><span class="pip"></span><span class="t-name">Timer</span><span class="t-armed">Armed</span><span id="overtimeBadge" class="overtime-badge"> OVERTIME</span></div>
+      <div class="label"><span class="draghandle" title="Drag onto another card to swap them · drag to the top of the window for layouts"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></span><span class="pip"></span><span class="t-name">Timer</span><span class="t-armed">Armed</span><span id="overtimeBadge" class="overtime-badge"> OVERTIME</span></div>
       <div class="cardbtns">
         <button class="viewtog editbtn" title="Rename, recolour — and for a timer, change its duration">✎ Edit</button>
         <label class="sound-sw" title="Timer sound on/off">
@@ -1108,7 +1127,7 @@
   <!-- STOPWATCH -->
   <section class="card c-card" id="chronoCard" data-type="chrono" style="--tcol:#f5f5fa">
     <div class="cardhead">
-      <div class="label"><span class="draghandle" title="Drag to move this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></span><span class="pip"></span><span class="c-name">Stopwatch</span></div>
+      <div class="label"><span class="draghandle" title="Drag onto another card to swap them · drag to the top of the window for layouts"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></span><span class="pip"></span><span class="c-name">Stopwatch</span></div>
       <div class="cardbtns">
         <button class="viewtog editbtn" title="Rename, recolour — and for a timer, change its duration">✎ Edit</button>
         <button class="viewtog viewbtn" id="chronoView" title="Switch between the digital figure and the Gorgy dial">◷ Dial</button>
@@ -1154,7 +1173,7 @@
   <section class="card" id="mediaCard" data-type="media">
     <div class="cardhead">
       <div class="label">
-        <span class="draghandle" title="Drag to move this card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></span>
+        <span class="draghandle" title="Drag onto another card to swap them · drag to the top of the window for layouts"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></span>
         <span class="media-conn-ico off" id="mConnDot" title="OBS WebSocket — click for settings"></span>
         OBS Media Countdown
       </div>
@@ -2283,6 +2302,7 @@ document.getElementById('cpOk').addEventListener('click', ()=>{
     handle.addEventListener('dragend', ()=>{
       card.classList.remove('dragging'); dragged=null;
       grid.querySelectorAll('.drop-target').forEach(c=>c.classList.remove('drop-target'));
+      closeSnapBar();
     });
     card.addEventListener('dragover', e=>{
       if(dragged && dragged!==card){ e.preventDefault(); card.classList.add('drop-target'); }
@@ -2297,6 +2317,156 @@ document.getElementById('cpOk').addEventListener('click', ()=>{
     });
   };
   Array.from(grid.children).forEach(c=> window._topWireDrag(c));
+
+  /* ---- snap layouts ----
+     Built for the number of cards on screen, so a zone is never left empty.
+     A layout is a grid shape (columns × rows, at most 8 × 6 like the GRID
+     field), relative track widths, and one zone per card in reading order. */
+  /* the bar sits after the script in the page: look it up when needed */
+  const getBar = () => document.getElementById('snapBar');
+  const ones = n => Array.from({length:n}, ()=>1);
+  const gcd  = (a,b) => b ? gcd(b, a%b) : a;
+  const lcm  = (a,b) => a*b/gcd(a,b);
+  /* n cards over k lines, the fuller lines first: 5 over 2 → [3,2] */
+  const split = (n,k) => Array.from({length:k}, (_,i)=> Math.floor(n/k) + (i < n%k ? 1 : 0));
+  const byRead = (a,b) => a.r-b.r || a.c-b.c;
+  /* rows of cards: [2,1] = two side by side, one full-width below */
+  function byRows(sizes){
+    const C = sizes.reduce(lcm, 1), z = [];
+    sizes.forEach((k,r)=>{ const s = C/k; for(let j=0;j<k;j++) z.push({c:j*s, r, cs:s, rs:1}); });
+    return {cols:C, rows:sizes.length, zones:z};
+  }
+  /* columns of cards: [1,2] = one tall on the left, two stacked on the right */
+  function byCols(sizes){
+    const R = sizes.reduce(lcm, 1), z = [];
+    sizes.forEach((k,c)=>{ const s = R/k; for(let j=0;j<k;j++) z.push({c, r:j*s, cs:1, rs:s}); });
+    return {cols:sizes.length, rows:R, zones:z.sort(byRead)};
+  }
+  /* one tall card beside the others laid out as a grid: 5 = 1 + 2 × 2 */
+  function bigPlusGrid(n, side){
+    const m = n-1, z = [];
+    for(let R=2; R<=3; R++){
+      if(m % R) continue;
+      const K = m / R, off = side==='left' ? 1 : 0;
+      z.push({c: side==='left' ? 0 : K, r:0, cs:1, rs:R});
+      for(let r=0;r<R;r++) for(let k=0;k<K;k++) z.push({c:k+off, r, cs:1, rs:1});
+      return {cols:K+1, rows:R, zones:z.sort(byRead)};
+    }
+    return null;
+  }
+  /* A layout is offered only if every card keeps a usable size on this
+     screen: the grid gives each row at least 232 px and scrolls past that,
+     which a layout should never cause. */
+  const MIN_ROW = 232, MIN_W = 220, GAP = 18;
+  function fits(L, wc){
+    const top   = grid.getBoundingClientRect().top;
+    const availH = window.innerHeight - top - 16;
+    if(L.rows*MIN_ROW + (L.rows-1)*GAP > availH) return false;
+    const W = grid.clientWidth - (L.cols-1)*GAP;
+    const w = wc || ones(L.cols), sum = w.reduce((x,y)=>x+y, 0);
+    return L.zones.every(q=>{
+      let px = 0; for(let c=q.c;c<q.c+q.cs;c++) px += W*w[c]/sum;
+      return px + (q.cs-1)*GAP >= MIN_W;
+    });
+  }
+  function layoutsFor(n){
+    const out = [], seen = new Set();
+    const add = (L, wc, wr) => {
+      if(!L || L.cols>8 || L.rows>6 || L.zones.length!==n || !fits(L, wc)) return;
+      const lay = {cols:L.cols, rows:L.rows, zones:L.zones,
+                   w:{cols: wc || ones(L.cols), rows: wr || ones(L.rows)}};
+      const k = JSON.stringify(lay);
+      if(!seen.has(k)){ seen.add(k); out.push(lay); }
+    };
+    const both = (fn, sizes) => { add(fn(sizes)); add(fn(sizes.slice().reverse())); };
+    const sq = Math.max(2, Math.round(Math.sqrt(n)));
+    if(n<=4) add(byRows([n]));                                     // side by side
+    if(n>=3 && n<=4){ add(byCols([1,n-1])); add(byCols([n-1,1])); } // one tall + a stack
+    for(let R=sq; R<n && R<=6; R++) both(byRows, split(n,R));      // even rows
+    if(n>=5){ add(bigPlusGrid(n,'left')); add(bigPlusGrid(n,'right')); }
+    for(let R=2; R<sq && R<n; R++) both(byRows, split(n,R));
+    if(n>=3 && n<=4){ add(byRows([1,n-1])); add(byRows([n-1,1])); } // one wide + a row
+    for(let K=2; K<n && K<=8; K++) both(byCols, split(n,K));       // even columns
+    if(n===2){ add(byRows([2]), [2,1]); add(byRows([2]), [1,2]); }   // 2/3 + 1/3
+    if(n===3) add(byRows([3]), [1,2,1]);                             // 1/4 1/2 1/4
+    if(n>4) add(byRows([n]));
+    if(n>1) add(byRows(ones(n)));                                    // all stacked
+    return out.slice(0, 10);
+  }
+  window._topLayoutsFor = layoutsFor;
+
+  function openSnapBar(card){
+    const bar = getBar();
+    if(!bar || document.body.classList.contains('screen-mode') ||
+       document.body.classList.contains('obs-mode') || isMaximized(card)) return;
+    const cards = Array.from(grid.children).filter(el=>el.classList.contains('card'));
+    const lays  = layoutsFor(cards.length);
+    if(lays.length < 2) return;
+    bar.innerHTML = '';
+    lays.forEach(lay=>{
+      const t = document.createElement('div');
+      t.className = 'snap-lay';
+      t.style.gridTemplateColumns = lay.w.cols.map(v=>v+'fr').join(' ');
+      t.style.gridTemplateRows    = lay.w.rows.map(v=>v+'fr').join(' ');
+      lay.zones.forEach((q,i)=>{
+        const z = document.createElement('div');
+        z.className = 'snap-zone';
+        z.style.gridColumn = (q.c+1)+' / span '+q.cs;
+        z.style.gridRow    = (q.r+1)+' / span '+q.rs;
+        /* the lit zone is set from dragover alone: dragleave also fires
+           between neighbouring elements and would make it flicker */
+        z.addEventListener('dragover', e=>{
+          if(!dragged) return;
+          e.preventDefault();
+          if(!z.classList.contains('over')){ litZone(null); z.classList.add('over'); }
+        });
+        z.addEventListener('drop', e=>{
+          e.preventDefault();
+          if(dragged) snapTo(dragged, lay, i);
+          closeSnapBar();
+        });
+        t.appendChild(z);
+      });
+      bar.appendChild(t);
+    });
+    bar.classList.add('open');
+    bar.setAttribute('aria-hidden','false');
+  }
+  function litZone(z){
+    const bar = getBar();
+    if(bar) bar.querySelectorAll('.snap-zone.over').forEach(el=>{ if(el!==z) el.classList.remove('over'); });
+  }
+  function closeSnapBar(){
+    const bar = getBar();
+    if(!bar) return;
+    litZone(null);
+    bar.classList.remove('open');
+    bar.setAttribute('aria-hidden','true');
+  }
+  /* the dragged card takes zone i, the others keep their order around it */
+  function snapTo(card, lay, i){
+    const others = Array.from(grid.children)
+      .filter(el=>el.classList.contains('card') && el!==card);
+    others.splice(i, 0, card);
+    others.forEach(el=> grid.appendChild(el));
+    if(window._topApplyLayout) window._topApplyLayout(lay);
+    saveOrder();
+    refreshNewCardBtn();
+  }
+  window._topSnapTo = (card, lay, i) => snapTo(card, lay, i);   // used by the tests
+
+  /* As in Windows, the bar waits until the card is brought up to the top of
+     the window (above the grid), so it never pops up under the pointer the
+     moment a card is grabbed. Moving well away from it closes it again. */
+  document.addEventListener('dragover', e=>{
+    if(!dragged) return;
+    const bar = getBar(); if(!bar) return;
+    if(!(e.target.classList && e.target.classList.contains('snap-zone'))) litZone(null);
+    const open = bar.classList.contains('open');
+    const edge = Math.max(60, grid.getBoundingClientRect().top);
+    if(!open && e.clientY < edge) openSnapBar(dragged);
+    else if(open && e.clientY > bar.getBoundingClientRect().bottom + 80) closeSnapBar();
+  });
 })();
 
 /* ===== MASTER VOLUME ===== */
@@ -2695,7 +2865,8 @@ window.addEventListener('resize', ()=> setTimeout(fitSoloDial, 60));
       });
       if(window._topRetagCards) window._topRetagCards();
     }
-    if(m.shape && window._topSetGridShape) window._topSetGridShape(m.shape.cols, m.shape.rows);
+    if(m.shape && window._topSetGridShape)
+      window._topSetGridShape(m.shape.cols, m.shape.rows, m.shape.zones, m.shape.w);
     m.cards.forEach(c=>{
       const card = grid.querySelector('.card[data-cid="'+CSS.escape(c.cid||'')+'"]')
                 || Array.from(grid.children).find(el=>el.classList &&
@@ -3869,7 +4040,10 @@ function showToast(msg, isError){
   let shapes = {landscape:{cols:2,rows:2}, portrait:null};
   try{
     const v = JSON.parse(LS.get(KEY)||'null');
-    if(v && v.landscape && v.portrait) shapes = v;
+    /* Before 2.9 this demanded both orientations, so a desktop that had never
+       been rotated came back as 2 × 2 after every reload. */
+    if(v && (v.landscape || v.portrait))
+      shapes = {landscape: v.landscape || {cols:2,rows:2}, portrait: v.portrait || null};
     else if(v && v.cols && v.rows) shapes = {landscape:{cols:v.cols,rows:v.rows},
                                              portrait:{cols:v.rows,rows:v.cols}};
   }catch(e){}
@@ -3884,9 +4058,13 @@ function showToast(msg, isError){
      cards spill into rows nobody asked for */
   function fitShape(sh){
     const n = cardCount() || 1;
+    const c0 = sh.cols, r0 = sh.rows;
     sh.cols = clamp(sh.cols,1,8); sh.rows = clamp(sh.rows,1,6);
     while(sh.cols*sh.rows < n && sh.rows < 6) sh.rows++;
     while(sh.cols*sh.rows < n && sh.cols < 8) sh.cols++;
+    /* a snap layout's zones describe one exact shape: once the shape grows,
+       they no longer cover it and would leave holes */
+    if(sh.zones && (sh.cols!==c0 || sh.rows!==r0)) delete sh.zones;
     return sh;
   }
   /* first time in this orientation: stack the cards in portrait, mirror the
@@ -3937,18 +4115,95 @@ function showToast(msg, isError){
     return list.map(v => total * v / sum);
   }
 
+  /* ---- where each card sits ----
+     A zone is {c, r, cs, rs}: first column, first row, columns and rows
+     covered. Cards take the zones in their on-screen order.
+     Two sources, in this order:
+     1. a layout picked from the snap bar (cfg.zones), used while there are
+        exactly as many cards as zones;
+     2. otherwise the plain grid, filled left to right, top to bottom, where
+        an empty cell is taken by the card above it — and when a whole column
+        is empty (fewer cards than columns), the last card widens into it.
+        So no cell is ever left blank. */
+  const cardsOnGrid = () => Array.from(grid.children).filter(el=>el.classList.contains('card'));
+  function zonesValid(z, C, R){
+    if(!Array.isArray(z)) return false;
+    const seen = new Set();
+    for(const q of z){
+      if(!q || !(q.cs>=1) || !(q.rs>=1) || q.c<0 || q.r<0 || q.c+q.cs>C || q.r+q.rs>R) return false;
+      for(let c=q.c;c<q.c+q.cs;c++) for(let r=q.r;r<q.r+q.rs;r++){
+        const k = c+','+r; if(seen.has(k)) return false; seen.add(k);
+      }
+    }
+    return seen.size === C*R;            // every cell covered, none twice
+  }
+  function autoZones(n, C, R){
+    if(n > C*R) return null;
+    const z = [];
+    for(let i=0;i<n;i++) z.push({c:i%C, r:Math.floor(i/C), cs:1, rs:1});
+    for(let c=0;c<C;c++){
+      let last = null;
+      z.forEach(q=>{ if(q.c===c) last = q; });
+      if(last) last.rs = R - last.r;     // down to the bottom of the grid
+    }
+    if(n && n < C) z[n-1].cs = C - (n-1); // and across the empty columns
+    return z;
+  }
+  function zonesNow(){
+    const n = cardCount();
+    if(cfg.zones && cfg.zones.length===n && zonesValid(cfg.zones, cfg.cols, cfg.rows))
+      return cfg.zones;
+    return autoZones(n, cfg.cols, cfg.rows);
+  }
+  /* writes each card's position; returns a signature of the whole layout so
+     the splitters are only rebuilt when it actually changes */
+  function placeCards(){
+    const z = zonesNow();
+    cardsOnGrid().forEach((el,i)=>{
+      const q = z && z[i];
+      el.style.gridColumn = q ? (q.c+1)+' / span '+q.cs : '';
+      el.style.gridRow    = q ? (q.r+1)+' / span '+q.rs : '';
+    });
+    return cfg.cols+'x'+cfg.rows+':'+(z ? z.map(q=>[q.c,q.r,q.cs,q.rs].join(',')).join(';') : '-');
+  }
+  /* index ranges [a,b] where flag[i] is true */
+  function runs(flags){
+    const out = []; let a = -1;
+    flags.forEach((f,i)=>{
+      if(f && a<0) a = i;
+      if(!f && a>=0){ out.push([a,i-1]); a = -1; }
+    });
+    if(a>=0) out.push([a, flags.length-1]);
+    return out;
+  }
+
   /* ---- splitters ---- */
   const splitters = [];
+  let splitSig = '';
   function clearSplitters(){
     splitters.forEach(el=>el.remove());
     splitters.length = 0;
   }
   function buildSplitters(){
     clearSplitters();
-    const make = (kind, index) => {
+    splitSig = placeCards();
+    /* A splitter runs along a boundary only where no card covers it: dragging
+       in the middle of a card that spans two rows would be a surprise. Several
+       segments of the same boundary resize the same track. */
+    const z = zonesNow();
+    const crosses = (q, kind, i, k) => kind==='row'
+      ? q.c<=k && k<q.c+q.cs && q.r<=i && i+1<q.r+q.rs
+      : q.r<=k && k<q.r+q.rs && q.c<=i && i+1<q.c+q.cs;
+    const segments = (kind, i) => {
+      const len = kind==='row' ? cfg.cols : cfg.rows;
+      const free = Array.from({length:len}, (_,k)=> !z || !z.some(q=>crosses(q,kind,i,k)));
+      return runs(free);
+    };
+    const make = (kind, index, seg) => {
       const el = document.createElement('div');
       el.className = 'grid-splitter ' + kind;
       el.dataset.kind = kind; el.dataset.index = index;
+      el.dataset.from = seg[0]; el.dataset.to = seg[1];
       el.title = (kind==='col' ? 'Drag to resize columns' : 'Drag to resize rows') +
                  ' · double-click to even them out';
       grid.appendChild(el);
@@ -3956,8 +4211,8 @@ function showToast(msg, isError){
       wireSplitter(el);
       return el;
     };
-    for(let i=0;i<cfg.cols-1;i++) make('col', i);
-    for(let i=0;i<cfg.rows-1;i++) make('row', i);
+    for(let i=0;i<cfg.cols-1;i++) segments('col', i).forEach(sg=>make('col', i, sg));
+    for(let i=0;i<cfg.rows-1;i++) segments('row', i).forEach(sg=>make('row', i, sg));
   }
   function placeSplitters(){
     const w      = weights();
@@ -3965,15 +4220,24 @@ function showToast(msg, isError){
     const colPx  = sizes(w.cols, gridW - GAP*(cfg.cols-1));
     const rowPx  = sizes(w.rows, availHeight());
     let x = 0;
-    const colAt = [];
-    colPx.forEach((px,i)=>{ x += px; colAt.push(x + GAP*i + GAP/2); });
+    const colAt = [], colStart = [];
+    colPx.forEach((px,i)=>{ colStart.push(x + GAP*i); x += px; colAt.push(x + GAP*i + GAP/2); });
     let y = 0;
-    const rowAt = [];
-    rowPx.forEach((px,i)=>{ y += px; rowAt.push(y + GAP*i + GAP/2); });
+    const rowAt = [], rowStart = [];
+    rowPx.forEach((px,i)=>{ rowStart.push(y + GAP*i); y += px; rowAt.push(y + GAP*i + GAP/2); });
     splitters.forEach(el=>{
-      const i = +el.dataset.index;
-      if(el.dataset.kind==='col') el.style.left = colAt[i] + 'px';
-      else                        el.style.top  = rowAt[i] + 'px';
+      const i = +el.dataset.index, a = +el.dataset.from, b = +el.dataset.to;
+      if(el.dataset.kind==='col'){
+        el.style.left   = colAt[i] + 'px';
+        el.style.top    = rowStart[a] + 'px';
+        el.style.bottom = 'auto';
+        el.style.height = (rowStart[b] + rowPx[b] - rowStart[a]) + 'px';
+      } else {
+        el.style.top    = rowAt[i] + 'px';
+        el.style.left   = colStart[a] + 'px';
+        el.style.right  = 'auto';
+        el.style.width  = (colStart[b] + colPx[b] - colStart[a]) + 'px';
+      }
     });
   }
 
@@ -4028,6 +4292,7 @@ function showToast(msg, isError){
     grid.style.gridTemplateColumns = colPx.map(v=>v.toFixed(1)+'px').join(' ');
     grid.style.gridTemplateRows    = rowPx.map(v=>v.toFixed(1)+'px').join(' ');
     grid.style.setProperty('--cols', cfg.cols);
+    if(placeCards() !== splitSig) buildSplitters();
     placeSplitters();
     if(window._topRefreshNewBtn) window._topRefreshNewBtn();
   }
@@ -4048,7 +4313,8 @@ function showToast(msg, isError){
       return;
     }
     if(gsBox) gsBox.classList.remove('err');
-    cfg.cols = cols; cfg.rows = rows;
+    if(cols===cfg.cols && rows===cfg.rows) return;   // nothing changed: keep the layout
+    cfg = {cols, rows};                 // a typed shape is a plain grid, no snap layout
     shapes[orient()] = cfg;
     cIn.value = cfg.cols; rIn.value = cfg.rows;
     LS.set(KEY, JSON.stringify(shapes));
@@ -4095,22 +4361,52 @@ function showToast(msg, isError){
   document.addEventListener('fullscreenchange', ()=> setTimeout(apply, 60));
   window._topApplyGrid    = apply;
   /* used by a second screen to take the control window's shape */
-  window._topSetGridShape = (c,r)=>{
+  window._topSetGridShape = (c,r,zones,w)=>{
     if(!cfg) return;
-    cfg.cols = clamp(c,1,8); cfg.rows = clamp(r,1,6); fitShape(cfg);
-    shapes[orient()] = {cols:cfg.cols, rows:cfg.rows};
+    cfg = {cols:clamp(c,1,8), rows:clamp(r,1,6)};
+    if(Array.isArray(zones)) cfg.zones = zones.map(q=>({c:q.c, r:q.r, cs:q.cs, rs:q.rs}));
+    fitShape(cfg);
+    /* weights travel too, so a 2/3 + 1/3 layout looks the same over there; kept
+       in memory only — a second screen never writes to storage */
+    if(w && Array.isArray(w.cols) && Array.isArray(w.rows) &&
+       w.cols.length===cfg.cols && w.rows.length===cfg.rows)
+      store[shapeId()] = {cols:w.cols.slice(), rows:w.rows.slice()};
+    shapes[orient()] = cfg;
     cIn.value = cfg.cols; rIn.value = cfg.rows;
+    buildSplitters(); apply();
+  };
+  /* a layout picked from the snap bar: shape, zones and track weights at once */
+  window._topApplyLayout = (lay)=>{
+    if(!cfg || !lay) return;
+    cfg = {cols:lay.cols, rows:lay.rows, zones:lay.zones.map(q=>({c:q.c, r:q.r, cs:q.cs, rs:q.rs}))};
+    store[shapeId()] = {cols:lay.w.cols.slice(), rows:lay.w.rows.slice()};
+    shapes[orient()] = cfg;
+    cIn.value = cfg.cols; rIn.value = cfg.rows;
+    if(gsBox) gsBox.classList.remove('err');
+    saveWeights();
+    LS.set(KEY, JSON.stringify(shapes));
     buildSplitters(); apply();
   };
   window._topGridCapacity = () => cfg.cols * cfg.rows;
   window._topGridShape    = () => cfg.cols + ' × ' + cfg.rows;
-  window._topGridShapeNums= () => cfg ? {cols:cfg.cols, rows:cfg.rows} : null;
+  window._topGridShapeNums= () => {
+    if(!cfg) return null;
+    const z = zonesNow(), w = weights();
+    return {cols:cfg.cols, rows:cfg.rows, zones:z, w:{cols:w.cols.slice(), rows:w.rows.slice()}};
+  };
   window._topGridOrient   = orient;
   window._topResetTracks  = () => { store[shapeId()] = {cols:ones(cfg.cols), rows:ones(cfg.rows)}; saveWeights(); apply(); };
 
   buildSplitters();
   apply();
   setTimeout(apply, 80);          // once fonts and dial sizing have settled
+  /* a card added, closed or moved changes who sits where: re-place at once,
+     whatever code path did it */
+  new MutationObserver(muts=>{
+    const touched = muts.some(m=>[...m.addedNodes, ...m.removedNodes]
+      .some(n=>n.nodeType===1 && n.classList.contains('card')));
+    if(touched) apply();
+  }).observe(grid, {childList:true});
 })();
 
 
@@ -4190,5 +4486,6 @@ function beep(freq,start,dur){
 function alarm(){ unlockAudio(); beep(880,0,0.18); beep(1320,0.22,0.18); beep(880,0.44,0.18); beep(1320,0.66,0.3); }
 
 </script>
+<div class="snapbar" id="snapBar" aria-hidden="true"></div>
 </body>
 </html>

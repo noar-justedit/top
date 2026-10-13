@@ -97,6 +97,23 @@ const keys = pg => pg.evaluate(()=>[...document.querySelectorAll('.grid > .card'
   const scols = await s.evaluate(()=>getComputedStyle(document.querySelector('.grid')).gridTemplateColumns.split(' ').length);
   ok('grid shape mirrored', mcols===3 && scols===3, mcols+' vs '+scols);
 
+  // ---- a snap layout follows, zones and track widths included ----
+  const place = pg => pg.evaluate(()=>[...document.querySelectorAll('.grid > .card')]
+     .map(c=>c.dataset.type+'@'+c.style.gridColumn+'|'+c.style.gridRow).join(' ; '));
+  await p.evaluate(()=>{
+    const cards=[...document.querySelectorAll('.grid > .card')];
+    const lays=window._topLayoutsFor(cards.length);
+    /* two rows at most: this screen is a 720 px window, and the grid gives
+       every row at least 232 px whatever the layout */
+    const lay=lays.find(l=>l.rows<=2 && l.zones.some(q=>q.rs>1||q.cs>1)) || lays[0];
+    window._topSnapTo(cards[cards.length-1], lay, 0);
+  });
+  await p.waitForTimeout(900);
+  const mp = await place(p), sp = await place(s);
+  ok('snap layout mirrored', mp===sp && /span [2-9]/.test(mp), mp+'  vs  '+sp);
+  const tracks = pg => pg.evaluate(()=>getComputedStyle(document.querySelector('.grid')).gridTemplateColumns.split(' ').length);
+  ok('  same number of columns', await tracks(p)===await tracks(s));
+
   // ---- adding a card appears on the screen ----
   await p.click('#newCardBtn'); await p.waitForSelector('#cardPicker.open .cp-opt');
   await p.click('.cp-opt[data-type="timer"]'); await p.click('#cpOk');

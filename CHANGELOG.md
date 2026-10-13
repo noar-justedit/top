@@ -1,5 +1,27 @@
 # Changelog
 
+## v2.9.0 — 2026-10
+
+### New — Snap layouts, as in Windows
+
+- **Drag a card by its `☰` grip up to the top of the window** and a bar of layouts slides down. Drop the card on a zone: the layout is applied, the card takes that zone, and the other cards fill the rest in their current order
+- **The layouts are built for the number of cards on screen**, so no zone is ever left empty: with three cards, three side by side, one tall beside two stacked (either side), two on top of one wide, one wide above two, a quarter–half–quarter split, three stacked. It works the same way with five, six, eight cards
+- A layout is only offered if every card keeps a usable size on the screen in front of you — none on a phone, more on a large display
+- The bar opens only at the top edge, never under the pointer the moment a card is grabbed, so a quick drop cannot apply a layout by accident. Dropping a card on another card still swaps the two
+- The layout is remembered, per orientation. Adding a card returns to the plain grid; closing it brings the layout back. Typing a shape in **GRID** returns to the plain grid
+- The second screen follows the layout, column widths included
+
+### New — No more empty cells
+
+- **A card stretches into the empty cells next to it.** Three cards in a 2 × 2 no longer leave a blank corner: the card above the empty cell runs the full height. When a whole column is empty, the last card widens into it
+- The splitters stop at a card that covers two cells, instead of running through the middle of it
+
+### Fixed
+
+- **The grid shape was lost on reload** on any machine that had never been rotated: TOP! came back as 2 × 2 every time. A shape saved in one orientation is now enough
+
+---
+
 ## v2.8.0 — 2026-09
 
 ### New — Screen projector: the whole grid on a second display

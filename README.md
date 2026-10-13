@@ -18,6 +18,7 @@ Clock, stopwatch, countdown timer and OBS media countdown for live event product
 - **OBS Media Countdown** — connects to OBS Studio via WebSocket v5 and counts down the media source currently playing (Media Source, VLC playlists, playlist plugins). Auto-detects the on-air source, ignores looping backdrops, source filter with per-scene checkboxes and Audio/Video type switches. Connection settings are remembered and reconnect automatically. Shows "STAND BY" with the current scene name under it — the name alone, sized with the dial and shortened if need be so it never runs under the ring
 - **Sound cues** — voice announcements at 5 min, 2 min, 1 min, 30 s, 20 s, then 10 → 1 s countdown, on both Timer and OBS Media Countdown. Master volume slider in the top bar
 - **Cards you add and remove** — `+ NEW CARD` adds a timer, a stopwatch or the OBS Media Countdown; every card has a close button and a maximize button. Type the grid shape you want (`3 × 2`, `4 × 1`…) in the top bar and the rows share the screen height. Drag & drop reordering between any two cards. Everything is remembered between sessions
+- **Snap layouts** — drag a card to the top of the window and pick a layout, as in Windows: one tall card beside two stacked, two on top of one wide, a quarter–half–quarter split… A card never leaves an empty cell behind: it stretches into it
 - **OBS integration** — per-tool Browser Source URLs with transparent background
 - **Stream Deck / Bitfocus Companion** — full control via keyboard shortcuts, no plugin needed
 - **Second screen** — a screen projector button puts your whole grid on another display, stripped of every control; a button on each card sends that card alone, full size. Both stay in step with the control window
@@ -163,6 +164,18 @@ Set the shape of the grid in the top bar: **`GRID  3 × 2`** means three columns
 
 The rows share the height of the screen, so the whole surface fits without scrolling — `3 × 2` gives each row half the space under the top bar, `2 × 1` gives full-height cards. Fewer rows means taller cards.
 
+**No empty cells.** When there are fewer cards than cells, a card stretches into the empty cells next to it: three cards in a `2 × 2` and the card above the empty corner runs the full height. When a whole column is empty, the last card widens into it.
+
+### Snap layouts
+
+Grab a card by its `☰` grip and bring it **up to the top of the window**: a bar of layouts slides down, as in Windows. Drop the card on a zone — the layout is applied, that card takes the zone, and the other cards fill the rest in their current order.
+
+The layouts are built for the number of cards on screen, so no zone is ever empty: with three cards you get three side by side, one tall beside two stacked (either side), two on top of one wide, one wide above two, a quarter–half–quarter split, three stacked. Only layouts that leave every card a usable size on your screen are offered — more on a large display, none on a phone.
+
+The layout is remembered, per orientation, and the second screen follows it. Adding a card returns to the plain grid, closing it brings the layout back, and typing a shape in **GRID** returns to the plain grid. The splitters still resize the tracks; they simply stop at a card that covers two cells.
+
+### Limits
+
 A row never gets shorter than the tightest card needs. Past that point the page scrolls rather than cutting a card in half, which is what happens on a phone with four cards stacked.
 
 Every card lives in that one grid, timers included — so the grid also sets **how many cards you can have**. A `3 × 2` grid holds six; `+ NEW` refuses to add a seventh and tells you why, and a grid shape too small for the cards already on screen is refused as well.
@@ -172,6 +185,7 @@ Every card lives in that one grid, timers included — so the grid also sets **h
 A card too short for its content **shrinks what is inside** rather than hiding it — smaller digits, tighter controls. In the smallest rows the timer presets step aside and the OBS dial gives way to its text readouts. Solo and full-screen views always show a card at full size.
 
 - **Drag** any card by the `☰` grip at the left of its title and drop it on another to swap the two — a timer can swap with the clock, the stopwatch or the OBS Media card
+- **Drag** it to the top of the window instead to pick a snap layout
 - **Drag** the space between two columns or two rows to resize them; **double-click** it to even that axis out
 - **Maximize** shows a single card full-page; press `Esc` or click the button again to return to the grid — the clock and the round dials are sized on the room actually left on screen, so nothing is ever cut off, portrait or landscape
 - **Close** removes a card from the grid, after a confirmation
@@ -238,6 +252,24 @@ Quick-adjust buttons add or subtract time from the running timer:
 ## Overtime
 
 When the timer reaches zero, it continues counting up in red (`+MM:SS`) with a blinking **OVERTIME** badge. Sound cues stop at zero.
+
+---
+
+## Development
+
+TOP! is one file, `index.html`: there is nothing to build or compile, and the same file runs on macOS, Windows and Linux in any modern browser.
+
+The test suites (Playwright + Chromium) live in `tests/`:
+
+```bash
+npm install        # once
+npm test           # the four suites, ~160 checks
+npm run hero       # regenerates screenshot-v2.png
+```
+
+Publishing to GitHub goes through `scripts/push_github.bat` on Windows (it runs `push_github.ps1`; needs Git for Windows) or `scripts/push_github.command` on macOS: unzip the release folder, double-click the script. It mirrors the folder onto the repository — additions, changes and deletions — after showing the list and waiting for `y`. It refuses unless `version.json` carries a version higher than the one on GitHub. `version.json` itself is sent last, on a second run, once the GitHub Release for that version is published.
+
+Project state, decisions and known issues: [ETAT_PROJET.md](ETAT_PROJET.md) (French). Working rules for AI assistants: [AGENTS.md](AGENTS.md).
 
 ---
 
