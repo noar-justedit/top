@@ -1,11 +1,12 @@
 {
   "name": "top",
-  "version": "2.9.0",
+  "version": "2.9.1",
   "private": true,
   "description": "TOP! — Live Event Time Control. Single-file HTML app; this package exists only to run the test suites.",
   "scripts": {
-    "test": "node tests/regression.js && node tests/screentest.js && node tests/screentest2.js && node tests/screentest3.js",
+    "test": "node tests/regression.js && node tests/i18n.js && node tests/screentest.js && node tests/screentest2.js && node tests/screentest3.js",
     "test:app": "node tests/regression.js",
+    "test:i18n": "node tests/i18n.js",
     "test:screen": "node tests/screentest.js && node tests/screentest2.js && node tests/screentest3.js",
     "hero": "node tests/hero.js",
     "demo": "node tests/demo-screen.js"
