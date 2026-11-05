@@ -1,5 +1,30 @@
 # Changelog
 
+## v2.9.1 — 2026-11
+
+**Chinese localization.**
+
+### New — Chinese UI
+
+- **Auto-detects the system language on first visit**: any Chinese locale (zh, zh-CN, zh-TW, zh-Hans, zh-Hant…) shows the Chinese UI, everything else stays English. A toggle button in the top bar switches language on the fly and the choice is remembered
+- Translation happens at runtime: the original markup is never edited, switching back to English restores it exactly
+- Dynamic content is translated too: timer states, toasts, new cards, editor dialog, shortcuts, clock date…
+
+### Fix — user-typed card names are never translated
+
+- Only automatic default names (Timer, Stopwatch 2…) show in Chinese; **names typed by the user are shown and stored verbatim**, even if they happen to match an automatic name
+- The "user named" state is saved per card and survives reloads
+
+### Fix
+
+- Grid capacity warnings were not translated
+
+### Tests
+
+- New i18n test suite
+
+---
+
 ## v2.9.0 — 2026-10
 
 ### New — Snap layouts, as in Windows

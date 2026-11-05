@@ -981,7 +981,7 @@
 <div class="topbar">
   <div class="brand">
     <span class="dot"></span>
-    <div class="brand-txt"><h1>TOP!</h1><span class="sub">Live Event Time Control · v2.9.0</span></div>
+    <div class="brand-txt"><h1>TOP!</h1><span class="sub">Live Event Time Control · v2.9.1</span></div>
   </div>
   <div class="brand-right">
     <div class="gridsize" title="Grid layout — columns × rows. The rows share the screen height.">
@@ -4485,6 +4485,516 @@ function beep(freq,start,dur){
 }
 function alarm(){ unlockAudio(); beep(880,0,0.18); beep(1320,0.22,0.18); beep(880,0.44,0.18); beep(1320,0.66,0.3); }
 
+</script>
+
+<script>
+/* ==== Chinese localization layer ====================================
+   Appended at the end of index.html so it can be synced with upstream
+   as a single block. The original markup is never edited: translation
+   happens at runtime over the DOM and is fully reversible. On first
+   visit the language follows the OS locale (any zh-* → Chinese,
+   otherwise English); the in-app toggle overrides this and the choice
+   is remembered. Each translated node keeps its source text in an
+   expando, and a MutationObserver re-translates whatever the app
+   rewrites (state labels, titles, toasts, cloned cards), so no app
+   logic ever sees the Chinese text.
+==================================================================== */
+(function(){
+'use strict';
+var LS_KEY='topLang';
+
+/* Exact matches on whitespace-normalized strings. */
+var DICT={
+  /* top bar */
+  'GRID':'网格',
+  'NEW CARD':'新建卡片',
+  'Full screen':'全屏',
+  'Screen projector':'屏幕投影',
+  'Screen projector — every card on another screen, without the controls':'屏幕投影 — 将每张卡片投送到另一块屏幕，不带控制元素',
+  'Screen projector — close the second screen':'屏幕投影 — 关闭第二屏',
+  'Stay awake':'保持唤醒',
+  'Stay awake — keep the screen from dimming or sleeping':'保持唤醒 — 防止屏幕变暗或休眠',
+  'Stay awake — not supported by this browser':'保持唤醒 — 此浏览器不支持',
+  'Stay awake is on — click to let the screen sleep':'保持唤醒已开启 — 点击可允许屏幕休眠',
+  'Stay awake — waiting for permission, click anywhere on the page':'保持唤醒 — 等待授权，请点击页面任意位置',
+  'Stay awake is off — the screen may go dark':'保持唤醒已关闭 — 屏幕可能会变暗',
+  'Keyboard shortcuts':'键盘快捷键',
+  'Master volume':'总音量',
+  'Columns':'列',
+  'Rows':'行',
+  'Grid layout — columns × rows. The rows share the screen height.':'网格布局 — 列 × 行。各行平分屏幕高度。',
+  'Grid full — enlarge the grid or close a card first':'网格已满 — 请先扩大网格或关闭一张卡片',
+  'Add a card to the grid':'向网格添加一张卡片',
+  /* cards, shared */
+  'Clock':'时钟',
+  'Timer':'倒计时',
+  'Stopwatch':'秒表',
+  'OBS Media Countdown':'OBS 媒体倒计时',
+  'Computer time':'本机时间',
+  'Drag onto another card to swap them · drag to the top of the window for layouts':'拖到另一张卡片上交换位置 · 拖到窗口顶部切换布局',
+  'Copy this card’s OBS Browser Source URL':'复制此卡片的 OBS 浏览器源 URL',
+  'OBS Browser Source URL':'OBS 浏览器源 URL',
+  '⎘ Copy':'⎘ 复制',
+  '✓ Copied':'✓ 已复制',
+  'Show this card on another screen':'在另一块屏幕上显示此卡片',
+  'Close the second screen showing this card':'关闭显示此卡片的第二屏',
+  'Maximize this card':'最大化此卡片',
+  'Back to the grid':'返回网格',
+  'Close this card':'关闭此卡片',
+  '✎ Edit':'✎ 编辑',
+  'Rename, recolour — and for a timer, change its duration':'重命名、换颜色 — 倒计时还可修改时长',
+  /* timer / stopwatch */
+  'Armed':'待命',
+  'OVERTIME':'已超时',
+  'SOUND':'提示音',
+  'Timer sound on/off':'倒计时提示音 开/关',
+  'Voice countdown on/off':'语音报时 开/关',
+  '◷ Dial':'◷ 表盘',
+  '▭ Digital':'▭ 数字',
+  'Digital':'数字',
+  'Gorgy dial':'Gorgy 表盘',
+  'Switch between the digital figure and the Gorgy dial':'在数字显示与 Gorgy 表盘之间切换',
+  'Hours':'时',
+  'Min':'分',
+  'Sec':'秒',
+  'Start':'开始',
+  'Pause':'暂停',
+  'Resume':'继续',
+  'Reset':'重置',
+  /* media card / OBS */
+  'OBS WebSocket — click for settings':'OBS WebSocket — 点击打开设置',
+  '☰ SOURCE FILTER':'☰ 来源筛选',
+  'Choose which OBS sources Auto mode may pick, scene by scene':'按场景选择“自动”模式可采用的 OBS 来源',
+  'Dial only':'仅表盘',
+  'Full card':'完整卡片',
+  'OBS WebSocket settings':'OBS WebSocket 设置',
+  'Host':'主机',
+  'Port':'端口',
+  'Password':'密码',
+  '(optional)':'（可选）',
+  'Remember':'记住',
+  'Remember these settings in this browser. The password is stored in clear text in localStorage — leave off on a shared machine.':'在此浏览器中记住这些设置。密码会以明文保存在 localStorage 中 — 公用电脑上请勿开启。',
+  'Auto (playing source)':'自动（正在播放的来源）',
+  'Reload source list':'重新加载来源列表',
+  'Connect':'连接',
+  'Connect to the OBS WebSocket server':'连接到 OBS WebSocket 服务器',
+  'Media':'媒体',
+  'No media playing':'暂无媒体播放',
+  'Scene':'场景',
+  'Elapsed':'已用时间',
+  'Remaining':'剩余时间',
+  'STAND BY':'待机',
+  'Disconnected':'未连接',
+  'Connecting…':'连接中…',
+  'Connected':'已连接',
+  'Missing host or port':'缺少主机或端口',
+  'Blocked by HTTPS':'被 HTTPS 阻止',
+  'Invalid address':'地址无效',
+  'Password required':'需要密码',
+  'Wrong password':'密码错误',
+  'Disconnected — retrying':'连接断开 — 正在重试',
+  'Enter the host and port of the OBS WebSocket server.':'请输入 OBS WebSocket 服务器的主机和端口。',
+  'Could not open the connection.':'无法建立连接。',
+  'This OBS WebSocket server requires a password (OBS → Tools → WebSocket Server Settings → Show Connect Info).':'此 OBS WebSocket 服务器需要密码（OBS → 工具 → WebSocket 服务器设置 → 显示连接信息）。',
+  'OBS refused the password. Check it in OBS → Tools → WebSocket Server Settings → Show Connect Info.':'OBS 拒绝了密码。请在 OBS → 工具 → WebSocket 服务器设置 → 显示连接信息 中核对。',
+  /* source filter */
+  'Connect to OBS to list sources.':'连接 OBS 后列出来源。',
+  'Loading…':'加载中…',
+  'Could not load scenes.':'无法加载场景。',
+  'No media sources found.':'未找到媒体来源。',
+  'Only checked sources are considered by the Auto mode countdown.':'只有勾选的来源才会被“自动”模式的倒计时采用。',
+  'Shift+Click a source to select it alone.':'Shift+点击某个来源可单独选中它。',
+  'VIDEO':'视频',
+  'AUDIO':'音频',
+  'Show / consider video sources':'显示 / 采用视频来源',
+  'Show / consider audio sources':'显示 / 采用音频来源',
+  'Select All':'全选',
+  'Deselect All':'全不选',
+  /* toasts, splitters, picker, timer modal, card kinds */
+  'The browser blocked the second window. Allow pop-ups for TOP! and try again.':'浏览器拦截了第二窗口。请允许 TOP! 弹出窗口后重试。',
+  'Drag to resize columns · double-click to even them out':'拖动调整列宽 · 双击均分',
+  'Drag to resize rows · double-click to even them out':'拖动调整行高 · 双击均分',
+  '⤢ Fullscreen':'⤢ 全屏',
+  'Countdown with presets, overtime and voice cues.':'倒计时，带预设、超时计时与语音提示。',
+  'Counts up from zero. Start, pause, reset.':'从零开始正计时。开始、暂停、重置。',
+  'Counts down whatever media OBS is playing.':'对 OBS 正在播放的媒体进行倒计时。',
+  'Reference clock with the date.':'带日期的参考时钟。',
+  'New card':'新建卡片',
+  'Add':'添加',
+  'Cancel':'取消',
+  'New timer':'新建倒计时',
+  'Edit timer':'编辑倒计时',
+  'New stopwatch':'新建秒表',
+  'Edit stopwatch':'编辑秒表',
+  'Name':'名称',
+  'Colour':'颜色',
+  'Custom colour':'自定义颜色',
+  'Duration':'时长',
+  'Create':'创建',
+  'Save':'保存',
+  'e.g. Keynote, Q&A, Break':'例如：主题演讲、问答、茶歇',
+  'Give it a name.':'请填写名称。',
+  'Pick a card to add.':'请选择要添加的卡片。',
+  'TOP! — Live Event Time Control':'TOP! — 现场活动时间控制',
+  /* shortcuts modal */
+  '⌨ KEYBOARD SHORTCUTS':'⌨ 键盘快捷键',
+  'TIMERS':'倒计时',
+  'STOPWATCHES':'秒表',
+  'LAYOUT':'布局',
+  'SECOND SCREEN':'第二屏',
+  'MAXIMIZE':'最大化',
+  'Space':'空格',
+  'Start / Pause':'开始 / 暂停',
+  'Reset to zero':'归零重置',
+  'Select the next timer (Shift+Tab: previous)':'选择下一个倒计时（Shift+Tab：上一个）',
+  'Navigate Hours / Min / Sec':'在 时 / 分 / 秒 之间切换',
+  'Increment / Decrement active unit':'增加 / 减少当前单位',
+  'Start / Pause the first stopwatch':'开始 / 暂停第一个秒表',
+  'Reset the first stopwatch':'重置第一个秒表',
+  'Drag a card by the grip left of its title':'拖动标题左侧的握柄移动卡片',
+  'Drag between two cards to resize · double-click to even them out':'在两张卡片之间拖动调整大小 · 双击均分',
+  'First timer':'第一个倒计时',
+  'First stopwatch':'第一个秒表',
+  'Close a dialog, then exit full screen, then back to the grid':'先关闭弹窗，再退出全屏，最后返回网格',
+  'Shortcuts act on the selected timer — click a card to select it. A timer past zero counts up in red with a':'快捷键作用于选中的倒计时 — 点击卡片即可选中。计时过零后将以红色正计时，并带',
+  'prefix.':'前缀。',
+  'Holding the on-screen':'按住屏幕上的',
+  'or':'或',
+  'button runs the value, faster as you hold.':'按钮可持续调整数值，按得越久变化越快。',
+  'in the top bar sends the whole grid to another display — the same cards in the same places, stripped of every control. The screen button on a card sends that card alone, full size. Both count in step with this window. Double-click the second window for full screen,':'可将整个网格投送到另一块屏幕 — 同样的卡片、同样的位置，但不带任何控制元素。卡片上的屏幕按钮则单独投送该卡片并全幅显示。两者都与本窗口同步计时。双击第二窗口进入全屏，',
+  'to leave it.':'退出。',
+  'Hover any button to read what it does.':'将鼠标悬停在任意按钮上，即可查看它的作用。'
+};
+
+var WEEKDAYS={Monday:'一',Tuesday:'二',Wednesday:'三',Thursday:'四',Friday:'五',Saturday:'六',Sunday:'日'};
+var MONTHS={January:1,February:2,March:3,April:4,May:5,June:6,July:7,August:8,September:9,October:10,November:11,December:12};
+
+/* Parameterized strings exact matching cannot cover. */
+var RULES=[
+  [/^Live Event Time Control · v(.+)$/,function(m){return '现场活动时间控制 · v'+m[1];}],
+  [/^Timer (\d+)$/,function(m){return '倒计时 '+m[1];}],
+  [/^Stopwatch (\d+)$/,function(m){return '秒表 '+m[1];}],
+  [/^([+−])(\d+) mins?$/,function(m){return m[1]+m[2]+' 分钟';}],
+  /* en-GB may insert a comma after the weekday depending on the ICU build */
+  [/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),? (\d{1,2}) (January|February|March|April|May|June|July|August|September|October|November|December) (\d{4})$/,
+    function(m){return m[4]+'年'+MONTHS[m[3]]+'月'+m[2]+'日 星期'+WEEKDAYS[m[1]];}],
+  [/^Close “(.+)” \? You can add it again from NEW CARD\.$/,function(m){return '关闭“'+m[1]+'”？\n\n之后可以从“新建卡片”重新添加。';}],
+  [/^The grid is full: (.+) holds (\d+) cards\. Enlarge the grid in the top bar, or close a card first\.$/,
+    function(m){return '网格已满：'+m[1]+' 布局可容纳 '+m[2]+' 张卡片。请在顶栏扩大网格，或先关闭一张卡片。';}],
+  [/^A (\d+) × (\d+) grid holds (\d+) cards?, and there are (\d+) on screen\. Adjust the other value, remove a card, or choose a bigger grid\.$/,
+    function(m){return m[1]+' × '+m[2]+' 网格可容纳 '+m[3]+' 张卡片，当前屏幕上有 '+m[4]+' 张。请调整另一个数值、关闭一张卡片，或选择更大的网格。';}],
+  [/^OBS WebSocket: (.+) — click for settings$/,function(m){var s=tr(m[1]);return 'OBS WebSocket：'+(s==null?m[1]:s.trim())+' — 点击打开设置';}],
+  [/^(.+) \(no duration\)$/,function(m){return m[1]+'（无时长）';}],
+  [/^This page is served over HTTPS, so the browser blocks an insecure ws:\/\/ connection to "(.+)"\. Use localhost, or open index\.html locally \(file:\/\/\) or over http:\/\/ to reach an OBS on another machine\.$/,
+    function(m){return '本页面通过 HTTPS 加载，浏览器会阻止到 "'+m[1]+'" 的非加密 ws:// 连接。请使用 localhost，或以本地 file:// 方式或 http:// 方式打开 index.html，以访问其他机器上的 OBS。';}]
+];
+
+/* data-tip matters because the tooltip module moves title into
+   data-tip on first hover and removes the title attribute. */
+var ATTRS=['title','placeholder','aria-label','data-tip'];
+var lang='en';
+var tNodes=[];  /* translated text nodes, for restore */
+var tElems=[];  /* elements with translated attributes, for restore */
+
+function norm(s){return s.replace(/\s+/g,' ').trim();}
+
+function trKey(k){
+  if(Object.prototype.hasOwnProperty.call(DICT,k)) return DICT[k];
+  for(var i=0;i<RULES.length;i++){
+    var m=RULES[i][0].exec(k);
+    if(m) return RULES[i][1](m);
+  }
+  return null;
+}
+
+/* Returns the Chinese string, or null when there is no entry.
+   Surrounding whitespace collapses to a single space so indented
+   markup keeps its shape after replacement. */
+function tr(s){
+  if(typeof s!=='string'||s==='') return null;
+  var out=trKey(norm(s));
+  if(out==null) return null;
+  return (/^\s/.test(s)?' ':'')+out+(/\s$/.test(s)?' ':'');
+}
+
+function translateNode(node){
+  if(isUserNamed(node)) return; /* user-chosen card name: keep it verbatim */
+  var cur=node.nodeValue;
+  if(node._topZh!=null){
+    if(cur===node._topZh) return; /* our own write: observer loop guard */
+    var again=tr(cur);            /* the app rewrote the text */
+    if(again==null){delete node._topOrig; delete node._topZh; return;}
+    node._topOrig=cur; node._topZh=again; node.nodeValue=again;
+    return;
+  }
+  var out=tr(cur);
+  if(out==null||out===cur) return;
+  node._topOrig=cur; node._topZh=out; node.nodeValue=out;
+  tNodes.push(node);
+}
+
+function translateAttrs(el){
+  if(el._topNoI18n) return;
+  for(var i=0;i<ATTRS.length;i++){
+    var a=ATTRS[i], cur=el.getAttribute(a);
+    if(cur==null||cur==='') continue;
+    var oa=el._topOrigAttrs, za=el._topZhAttrs;
+    if(oa&&za&&oa[a]!=null&&cur===za[a]) continue; /* our own write */
+    var out=tr(cur);
+    if(out==null||out===cur){
+      if(oa&&oa[a]!=null){delete oa[a]; delete za[a];} /* app wrote untranslatable text */
+      continue;
+    }
+    if(!oa){oa=el._topOrigAttrs={}; za=el._topZhAttrs={}; tElems.push(el);}
+    oa[a]=cur; za[a]=out;
+    el.setAttribute(a,out);
+  }
+}
+
+function translateTree(root){
+  if(!root||root._topNoI18n) return;
+  if(root.nodeType===3){translateNode(root); return;}
+  var walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{
+    acceptNode:function(n){
+      var p=n.parentNode;
+      if(!p||p._topNoI18n) return NodeFilter.FILTER_REJECT;
+      var tag=p.nodeName;
+      if(tag==='SCRIPT'||tag==='STYLE') return NodeFilter.FILTER_REJECT;
+      if(!/\S/.test(n.nodeValue)) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  var batch=[],n;
+  while((n=walker.nextNode())) batch.push(n);
+  for(var i=0;i<batch.length;i++) translateNode(batch[i]);
+  if(root.querySelectorAll){
+    var els=root.querySelectorAll('[title],[placeholder],[aria-label],[data-tip]');
+    for(var j=0;j<els.length;j++) translateAttrs(els[j]);
+  }
+  if(root.nodeType===1&&root.hasAttribute) translateAttrs(root);
+}
+
+function restoreAll(){
+  var i,el,oa,a;
+  for(i=0;i<tNodes.length;i++){
+    var n=tNodes[i];
+    if(n._topOrig!=null){
+      if(n.isConnected) n.nodeValue=n._topOrig;
+      delete n._topOrig; delete n._topZh;
+    }
+  }
+  tNodes.length=0;
+  for(i=0;i<tElems.length;i++){
+    el=tElems[i]; oa=el._topOrigAttrs;
+    if(oa){
+      if(el.isConnected){
+        for(a in oa){
+          if(!Object.prototype.hasOwnProperty.call(oa,a)) continue;
+          /* the tooltip module may have moved title into data-tip */
+          if(a==='title'&&el.getAttribute('title')==null&&el.getAttribute('data-tip')!=null) el.setAttribute('data-tip',oa[a]);
+          else el.setAttribute(a,oa[a]);
+        }
+      }
+      delete el._topOrigAttrs; delete el._topZhAttrs;
+    }
+  }
+  tElems.length=0;
+}
+
+var observer=new MutationObserver(function(muts){
+  if(lang!=='zh') return;
+  for(var i=0;i<muts.length;i++){
+    var m=muts[i],j;
+    if(m.type==='characterData') translateNode(m.target);
+    else if(m.type==='attributes') translateAttrs(m.target);
+    else{
+      for(j=0;j<m.addedNodes.length;j++){
+        var n=m.addedNodes[j];
+        if(n.nodeType===3) translateNode(n);
+        else if(n.nodeType===1) translateTree(n);
+      }
+    }
+  }
+});
+
+/* confirm() holds the only UI string that never enters the DOM. */
+var origConfirm=window.confirm;
+window.confirm=function(msg){
+  if(lang==='zh'&&typeof msg==='string'){
+    var t=tr(msg);
+    if(t!=null) msg=t.trim();
+  }
+  return origConfirm.call(window,msg);
+};
+
+/* User-chosen card names are never translated: only app-generated defaults
+   ('Timer', 'Stopwatch 2'…, always stored in English) get a Chinese display.
+   A name becomes user-chosen once the user actually types in the editor —
+   a real keystroke, so even typing 'Timer' by hand counts and stays 'Timer'.
+   The flag is kept per card id (cards carry a stable data-cid, persisted in
+   topCards) so it survives reloads and reaches the second screen. */
+var NAMES_KEY='topUserNames', lockedNames={};
+function loadLocked(){
+  lockedNames={};
+  try{
+    var raw=localStorage.getItem(NAMES_KEY); if(!raw) return;
+    var o=JSON.parse(raw); for(var k in o) if(o[k]) lockedNames[k]=1;
+  }catch(e){}
+}
+function lockName(cid){
+  if(!cid) return;
+  loadLocked(); /* merge names locked by the second screen first */
+  if(lockedNames[cid]) return;
+  lockedNames[cid]=1;
+  try{
+    var o={}; for(var k in lockedNames) o[k]=1;
+    localStorage.setItem(NAMES_KEY,JSON.stringify(o));
+  }catch(e){}
+}
+function isUserNamed(n){
+  var p=n.parentElement;
+  if(!p||!p.classList) return false;
+  if(!p.classList.contains('t-name')&&!p.classList.contains('c-name')) return false;
+  var card=p.closest('.card');
+  if(!card||!card.dataset) return false;
+  var cid=card.dataset.cid;
+  if(!cid) return false;
+  if(lockedNames[cid]) return true;
+  loadLocked(); /* re-read: a rename on the second screen lands here live */
+  return !!lockedNames[cid];
+}
+/* The card editor prefills #tmName from the instance's stored name, which
+   is English for default names ('Timer 2'): the user would edit a string
+   the card never shows. In zh mode the prefill is translated — unless the
+   card is locked, in which case the user's own name appears verbatim.
+   input.value is a JS property, not an attribute, so the main observer
+   never sees it — watching the modal's class (set right after the value)
+   works instead. An untouched translated prefill is switched back to the
+   English default on OK (capture, before the app reads the field), so
+   automatic names stay stored in English; when the user typed, the card
+   is locked (bubble, after the app applied the name). */
+function bindEditorPrefill(){
+  var modal=document.getElementById('timerModal'), name=document.getElementById('tmName');
+  var okBtn=document.getElementById('tmOk'), cancelBtn=document.getElementById('tmCancel');
+  var cpOk=document.getElementById('cpOk'), grid=document.getElementById('grid');
+  if(!modal||!name||!okBtn) return;
+  var target=null, dirty=false, en0=null, zh0=null;
+  document.addEventListener('click',function(e){
+    var btn=e.target&&e.target.closest?e.target.closest('.editbtn'):null;
+    if(!btn) return;
+    target=btn.closest('.card'); dirty=false;
+  },true);
+  if(cpOk) cpOk.addEventListener('click',function(){
+    target=null; dirty=false; /* new card: the editor has no .editbtn */
+  },true);
+  name.addEventListener('input',function(){ dirty=true; }); /* JS value sets don't fire this */
+  new MutationObserver(function(){
+    if(!modal.classList.contains('open')){ en0=zh0=null; return; }
+    en0=name.value;
+    if(lang!=='zh') return;
+    loadLocked();
+    var cid=target&&target.dataset?target.dataset.cid:null;
+    if(cid&&lockedNames[cid]) return; /* user's own name: prefill as-is */
+    var t=tr(en0);
+    if(t!=null){ zh0=t.trim(); name.value=zh0; }
+  }).observe(modal,{attributes:true,attributeFilter:['class']});
+  okBtn.addEventListener('click',function(){
+    if(lang==='zh'&&en0!=null&&!dirty&&zh0!=null&&name.value===zh0)
+      name.value=en0; /* untouched translated prefill: keep the English default */
+  },true);
+  okBtn.addEventListener('click',function(){
+    if(!dirty) return;
+    var nm=(name.value||'').trim(); if(!nm) return;
+    /* makeCard appends a new card to the grid, so it is the last child */
+    var card=(target&&target.isConnected)?target:(grid?grid.lastElementChild:null);
+    if(!card||!card.dataset) return;
+    lockName(card.dataset.cid);
+    /* microtasks flush between click listeners, so the observer may already
+       have translated the fresh name node before this lock landed: undo it */
+    var el=card.querySelector('.t-name,.c-name');
+    var tn=el&&el.firstChild;
+    if(tn&&tn._topOrig!=null){
+      tn.nodeValue=tn._topOrig;
+      delete tn._topOrig; delete tn._topZh;
+    }
+  });
+  if(cancelBtn) cancelBtn.addEventListener('click',function(){ dirty=false; en0=zh0=null; });
+}
+
+var origTitle=document.title;
+var origLang=document.documentElement.getAttribute('lang');
+function applyMeta(){
+  if(lang==='zh'){
+    var t=tr(origTitle);
+    document.title=(t==null?origTitle:t.trim());
+    document.documentElement.setAttribute('lang','zh-CN');
+  }else{
+    document.title=origTitle;
+    if(origLang==null) document.documentElement.removeAttribute('lang');
+    else document.documentElement.setAttribute('lang',origLang);
+  }
+}
+
+/* Injected next to the shortcuts button; .iconly styles it for free.
+   _topNoI18n keeps the switcher itself out of the translation. */
+function makeLangButton(){
+  if(document.getElementById('langBtn')) return;
+  var anchor=document.getElementById('shortcutsBtn');
+  if(!anchor||!anchor.parentNode) return;
+  var b=document.createElement('button');
+  b.type='button'; b.id='langBtn'; b.className='iconly';
+  b._topNoI18n=true;
+  b.style.cssText='width:auto;min-width:32px;padding:0 6px;gap:3px;font-size:11px;font-weight:700;';
+  b.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg><span>中</span>';
+  b.addEventListener('click',function(){setLang(lang==='zh'?'en':'zh');});
+  anchor.parentNode.insertBefore(b,anchor.nextSibling);
+}
+function refreshButton(){
+  var b=document.getElementById('langBtn');
+  if(!b) return;
+  b.querySelector('span').textContent=(lang==='zh')?'EN':'中';
+  var t=(lang==='zh')?'Switch to English':'切换到中文';
+  b.title=t; b.setAttribute('aria-label',t);
+}
+
+function setLang(l){
+  lang=(l==='zh')?'zh':'en';
+  try{localStorage.setItem(LS_KEY,lang);}catch(e){}
+  if(lang==='zh') translateTree(document.body);
+  else restoreAll();
+  applyMeta();
+  refreshButton();
+}
+
+/* On first visit (no saved choice) follow the OS language: any Chinese
+   locale (zh, zh-CN, zh-TW, zh-HK, zh-Hans, zh-Hant…) → Chinese,
+   everything else → English. navigator.languages is the full ordered
+   list of the user's preferred languages; fall back to navigator.language. */
+function detectLang(){
+  try{
+    var langs=(navigator.languages&&navigator.languages.length)?navigator.languages:[navigator.language];
+    for(var i=0;i<langs.length;i++){
+      var l=(langs[i]||'').toLowerCase();
+      if(l.indexOf('zh')===0) return 'zh';
+    }
+  }catch(e){}
+  return 'en';
+}
+
+function boot(){
+  makeLangButton();
+  bindEditorPrefill();
+  loadLocked();
+  var saved=null;
+  try{saved=localStorage.getItem(LS_KEY);}catch(e){}
+  if(saved!=='zh'&&saved!=='en') saved=detectLang();
+  observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:ATTRS});
+  setLang(saved);
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
+else boot();
+})();
+</script>
 </script>
 <div class="snapbar" id="snapBar" aria-hidden="true"></div>
 </body>
