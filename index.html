@@ -4488,13 +4488,13 @@ function alarm(){ unlockAudio(); beep(880,0,0.18); beep(1320,0.22,0.18); beep(88
 </script>
 
 <script>
-/* ==== Chinese localization layer (Chinese fork only) ==============
-   This single block is the ONLY change the Chinese fork makes to
-   index.html, so syncing with upstream stays a one-spot merge.
-   Chinese is the default (the toggle switches to English and the
-   choice is remembered) and the original markup is never
-   edited: translation happens at runtime over the DOM and is fully
-   reversible. Each translated node keeps its source text in an
+/* ==== Chinese localization layer ====================================
+   Appended at the end of index.html so it can be synced with upstream
+   as a single block. The original markup is never edited: translation
+   happens at runtime over the DOM and is fully reversible. On first
+   visit the language follows the OS locale (any zh-* → Chinese,
+   otherwise English); the in-app toggle overrides this and the choice
+   is remembered. Each translated node keeps its source text in an
    expando, and a MutationObserver re-translates whatever the app
    rewrites (state labels, titles, toasts, cloned cards), so no app
    logic ever sees the Chinese text.
